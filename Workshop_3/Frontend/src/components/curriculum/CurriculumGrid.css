@@ -1,0 +1,49 @@
+/* src/components/curriculum/CurriculumGrid.css */
+
+.grid-container {
+  width: 100%;
+  overflow-x: auto; /* Esto permite el SCROLL HORIZONTAL */
+  padding-bottom: 20px;
+  /* Estilo del scrollbar para que combine */
+  scrollbar-width: thin;
+  scrollbar-color: var(--unal-gray) #f1f1f1;
+}
+
+.grid-track {
+  display: flex;
+  gap: 20px; /* Espacio entre semestres */
+  min-width: max-content; /* Fuerza a que crezca horizontalmente */
+  padding: 0 5px;
+}
+
+.semester-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px; /* Espacio entre materias verticales */
+  width: 240px; /* Ancho fijo de cada semestre */
+  min-width: 240px;
+}
+
+.semester-header {
+  text-align: center;
+  font-weight: 700;
+  color: var(--unal-dark);
+  border-bottom: 3px solid var(--unal-red);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  background-color: var(--unal-light-gray);
+  position: sticky; /* Opcional: mantiene el título visible si hay scroll vertical interno */
+  top: 0;
+  z-index: 10;
+}
+
+.empty-semester {
+  height: 100px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bdbdbd;
+  font-size: 0.8rem;
+}
