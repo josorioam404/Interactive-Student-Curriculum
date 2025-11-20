@@ -1,0 +1,178 @@
+/* src/pages/ProgramSelection.css */
+
+.program-selection-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 2rem 5%; 
+    box-sizing: border-box;
+    padding-bottom: 4rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--unal-dark);
+    margin-bottom: 2.5rem;
+    text-align: center;
+    width: 100%;
+}
+
+/* --- GRID DE PROGRAMAS --- */
+.programs-grid {
+    display: grid;
+    width: 100%;
+    /* Mantenemos las tarjetas anchas (rectangulares) */
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 2rem;
+    justify-content: center;
+    
+    /* CAMBIO IMPORTANTE: 'start' en lugar de 'stretch'.
+       Esto permite que la tarjeta seleccionada crezca en altura 
+       sin estirar a sus vecinas de la misma fila. */
+    align-items: start; 
+}
+
+.program-card {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    /* Padding interno unificado */
+    padding: 0; 
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transición suave */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden; /* Mantiene el contenido dentro de los bordes redondeados */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Contenido superior siempre visible */
+.card-header-content {
+    padding: 1.8rem;
+    min-height: 160px; /* Altura base para mantener uniformidad inicial */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.program-card:hover {
+    border-color: var(--unal-gray);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* --- ESTADO SELECCIONADO --- */
+.program-card.selected {
+    border: 2px solid var(--unal-red);
+    background-color: white;
+    box-shadow: 0 8px 25px rgba(149, 25, 28, 0.15);
+    transform: scale(1.02); /* Crece un poquito para destacar */
+    z-index: 10; /* Se pone por encima de las demás */
+}
+
+/* Barra lateral decorativa */
+.program-card.selected::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background-color: var(--unal-red);
+}
+
+.program-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--unal-dark);
+    margin-bottom: 0.8rem;
+    line-height: 1.3;
+}
+
+.program-card.selected .program-name {
+    color: var(--unal-red);
+}
+
+.program-desc {
+    font-size: 0.9rem;
+    color: var(--unal-gray);
+    line-height: 1.5;
+}
+
+/* --- SECCIÓN EXPANDIDA (RESUMEN INTERNO) --- */
+.card-expanded-content {
+    padding: 0 1.8rem 1.8rem 1.8rem;
+    background-color: #fffbfb; /* Fondo muy sutil rojizo */
+    animation: slideDown 0.3s ease-out forwards;
+    border-top: 1px solid transparent; /* Espaciador */
+}
+
+.divider-line {
+    height: 1px;
+    background-color: #e0e0e0;
+    margin-bottom: 1.2rem;
+    width: 100%;
+}
+
+.summary-block h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--unal-dark);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.summary-block p {
+    font-size: 0.9rem;
+    color: var(--unal-gray);
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+}
+
+.summary-block small {
+    display: block;
+    color: #bbb;
+    font-size: 0.75rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
+.load-curriculum-btn {
+    width: 100%; /* Botón ancho completo dentro de la tarjeta */
+    background-color: var(--unal-red);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.load-curriculum-btn:hover {
+    background-color: #7a1316;
+    transform: translateY(-2px);
+}
+
+/* Animación de despliegue */
+@keyframes slideDown {
+    from { 
+        opacity: 0; 
+        transform: translateY(-10px);
+        max-height: 0;
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0);
+        max-height: 500px; /* Valor alto para permitir crecimiento */
+    }
+}
