@@ -2,6 +2,7 @@ import React from 'react';
 import type { StudyPlanItem, SubjectStatus } from '../../types';
 import './SubjectCard.css';
 
+// Define las propiedades requeridas para el componente de tarjeta de asignatura
 interface SubjectCardProps {
   data: StudyPlanItem;
   status: SubjectStatus;
@@ -9,7 +10,7 @@ interface SubjectCardProps {
 }
 
 export const SubjectCard: React.FC<SubjectCardProps> = ({ data, status, onClick }) => {
-  // Extraemos datos. Si 'subject' viene undefined, usamos valores por defecto.
+  // Desestructura los datos y asigna valores por defecto si el objeto 'subject' no está definido
   const { subject_code, subject } = data;
   const name = subject?.name || "Asignatura Desconocida";
   const credits = subject?.credits || 0;
@@ -22,7 +23,7 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({ data, status, onClick 
     >
       <div className="card-header-sc">
         <span className="subject-code">{subject_code}</span>
-        {/* Ícono de alerta si hay error de prerrequisitos */}
+        {/* Muestra un indicador visual si existe un error de prerrequisitos */}
         {status === 'error' && <span className="warning-icon">⚠️</span>}
       </div>
       

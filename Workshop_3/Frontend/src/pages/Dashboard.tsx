@@ -7,13 +7,13 @@ import type { StudyPlanItem } from '../types';
 import './Dashboard.css';
 
 export const Dashboard: React.FC = () => {
+  // Gestiona el estado local para los filtros de búsqueda y el modal de detalles
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState<StudyPlanItem | null>(null);
 
-  // Función auxiliar para determinar el estado (Simulación temporal igual que en la Grilla)
-  // Cuando integremos el Backend, este estado vendrá directo en el objeto 'item'
+  // Simula el estado de la materia según el semestre para propósitos de visualización
   const getSimulatedStatus = (sem: number) => {
     if (sem < 2) return 'approved';
     if (sem === 2) return 'enrolled';
@@ -21,16 +21,17 @@ export const Dashboard: React.FC = () => {
     return 'pending';
   };
 
+  // Filtra la lista de asignaturas basándose en la búsqueda de texto, tipo y estado simulado
   const filteredItems = mockCurriculum.filter(item => {
-    // 1. Filtro de Búsqueda
+    // Filtro por coincidencia de nombre o código
     const matchesSearch = 
       (item.subject?.name.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       item.subject_code.includes(searchTerm);
     
-    // 2. Filtro por Tipo (Componente)
+    // Filtro por componente curricular
     const matchesType = filterType === 'all' || item.component === filterType;
 
-    // 3. Filtro por Estado (AHORA SÍ ES FUNCIONAL CON LA SIMULACIÓN)
+    // Filtro por estado académico
     const currentStatus = getSimulatedStatus(item.suggested_semester);
     const matchesStatus = filterStatus === 'all' || currentStatus === filterStatus;
     
@@ -48,7 +49,7 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-container">
       
-      {/* 1. PANEL DE MÉTRICAS (CORREGIDO) */}
+      {/* Renderiza el panel de métricas con los promedios académicos y progreso */}
       <section className="metrics-panel">
         <div className="metric-card">
           <span className="metric-label">Créditos Cursados</span>
@@ -69,7 +70,6 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* TERMINOLOGÍA CORREGIDA AQUÍ */}
         <div className="metric-card">
           <span className="metric-label">P.A. (Global)</span>
           <span className="metric-value">4.25</span>
@@ -83,7 +83,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. BARRA DE HERRAMIENTAS */}
+      {/* Barra de herramientas con campo de búsqueda y selectores de filtro */}
       <section className="toolbar-container">
         <div className="search-box">
           <Search size={18} className="search-icon" />
@@ -112,7 +112,6 @@ export const Dashboard: React.FC = () => {
             <option value="libre">Libre Elección</option>
           </select>
 
-          {/* FILTRO DE ESTADOS AHORA FUNCIONAL */}
           <select 
             className="filter-select" 
             value={filterStatus}
@@ -127,7 +126,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. ZONA DE MALLA */}
+      {/* Visualiza la malla curricular filtrada en un contenedor desplazable */}
       <section className="curriculum-scroll-area">
         <CurriculumGrid 
             items={filteredItems} 
@@ -135,7 +134,7 @@ export const Dashboard: React.FC = () => {
         />
       </section>
 
-      {/* 4. MODAL */}
+      {/* Modal de detalle, visible solo si hay una asignatura seleccionada */}
       <SubjectDetailModal 
         isOpen={!!selectedSubject} 
         onClose={handleCloseModal} 

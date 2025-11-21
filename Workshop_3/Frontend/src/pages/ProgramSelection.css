@@ -1,5 +1,4 @@
-/* src/pages/ProgramSelection.css */
-
+/* Configura el contenedor principal con centrado automático y espaciado lateral responsivo */
 .program-selection-container {
     display: flex;
     flex-direction: column;
@@ -20,40 +19,38 @@
     width: 100%;
 }
 
-/* --- GRID DE PROGRAMAS --- */
+/* Establece una cuadrícula responsiva para las tarjetas de programas */
 .programs-grid {
     display: grid;
     width: 100%;
-    /* Mantenemos las tarjetas anchas (rectangulares) */
+    /* Define columnas adaptables con un ancho mínimo para mantener la forma rectangular */
     grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
     gap: 2rem;
     justify-content: center;
     
-    /* CAMBIO IMPORTANTE: 'start' en lugar de 'stretch'.
-       Esto permite que la tarjeta seleccionada crezca en altura 
-       sin estirar a sus vecinas de la misma fila. */
+    /* Permite que la tarjeta seleccionada crezca verticalmente sin afectar a las adyacentes */
     align-items: start; 
 }
 
+/* Estiliza la tarjeta base con bordes, sombras y transiciones suaves */
 .program-card {
     background-color: white;
     border: 1px solid #e0e0e0;
     border-radius: var(--border-radius);
-    /* Padding interno unificado */
-    padding: 0; 
+    padding: 0; /* El padding se maneja en los contenedores internos */
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* Transición suave */
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden; /* Mantiene el contenido dentro de los bordes redondeados */
+    overflow: hidden;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* Contenido superior siempre visible */
+/* Define el área superior visible permanentemente */
 .card-header-content {
     padding: 1.8rem;
-    min-height: 160px; /* Altura base para mantener uniformidad inicial */
+    min-height: 160px; /* Mantiene uniformidad visual inicial */
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -65,16 +62,16 @@
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-/* --- ESTADO SELECCIONADO --- */
+/* Aplica estilos de énfasis para la tarjeta activa/seleccionada */
 .program-card.selected {
     border: 2px solid var(--unal-red);
     background-color: white;
     box-shadow: 0 8px 25px rgba(149, 25, 28, 0.15);
-    transform: scale(1.02); /* Crece un poquito para destacar */
-    z-index: 10; /* Se pone por encima de las demás */
+    transform: scale(1.02);
+    z-index: 10; /* Eleva la tarjeta sobre las demás */
 }
 
-/* Barra lateral decorativa */
+/* Agrega un indicador lateral decorativo en estado seleccionado */
 .program-card.selected::before {
     content: '';
     position: absolute;
@@ -103,12 +100,12 @@
     line-height: 1.5;
 }
 
-/* --- SECCIÓN EXPANDIDA (RESUMEN INTERNO) --- */
+/* Estiliza el contenedor expandible para detalles adicionales */
 .card-expanded-content {
     padding: 0 1.8rem 1.8rem 1.8rem;
-    background-color: #fffbfb; /* Fondo muy sutil rojizo */
+    background-color: #fffbfb;
     animation: slideDown 0.3s ease-out forwards;
-    border-top: 1px solid transparent; /* Espaciador */
+    border-top: 1px solid transparent;
 }
 
 .divider-line {
@@ -142,8 +139,9 @@
     font-style: italic;
 }
 
+/* Botón de acción principal dentro de la tarjeta */
 .load-curriculum-btn {
-    width: 100%; /* Botón ancho completo dentro de la tarjeta */
+    width: 100%;
     background-color: var(--unal-red);
     color: white;
     border: none;
@@ -163,7 +161,7 @@
     transform: translateY(-2px);
 }
 
-/* Animación de despliegue */
+/* Controla la animación de apertura del contenido expandible */
 @keyframes slideDown {
     from { 
         opacity: 0; 
@@ -173,6 +171,6 @@
     to { 
         opacity: 1; 
         transform: translateY(0);
-        max-height: 500px; /* Valor alto para permitir crecimiento */
+        max-height: 500px;
     }
 }

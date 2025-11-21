@@ -3,6 +3,7 @@ import { X, AlertTriangle, Clock, MapPin } from 'lucide-react';
 import type { StudyPlanItem } from '../../types';
 import './SubjectDetailModal.css';
 
+// Define las propiedades para el control y datos del modal de detalle
 interface SubjectDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,16 +11,18 @@ interface SubjectDetailModalProps {
 }
 
 export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, onClose, data }) => {
+  // Retorna nulo si el modal no debe mostrarse o no hay datos disponibles
   if (!isOpen || !data) return null;
 
   const { subject_code, subject } = data;
   
-  // Simulamos una estructura de horario más compleja para visualización
+  // Simula datos de horario estructurados para la visualización de la interfaz
   const mockScheduleData = [
     { day: 'Martes', time: '10:00 - 12:00', room: 'Edif. 454 - Salón 401' },
     { day: 'Jueves', time: '10:00 - 12:00', room: 'Edif. 454 - Salón 401' }
   ];
 
+  // Prepara los datos de visualización asignando valores por defecto para evitar errores
   const displayData = {
     name: subject?.name || "Asignatura Desconocida",
     credits: subject?.credits || 0,
@@ -32,9 +35,10 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
 
   return (
     <div className="modal-overlay" onClick={onClose}>
+      {/* Detiene la propagación del evento clic para evitar cerrar el modal al interactuar con el contenido */}
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         
-        {/* HEADER */}
+        {/* Encabezado del modal con título y botón de cierre */}
         <div className="modal-header">
           <div>
             <h2 className="modal-title">{displayData.name}</h2>
@@ -45,10 +49,10 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
           </button>
         </div>
 
-        {/* CONTENT */}
+        {/* Contenido principal con información detallada */}
         <div className="modal-content">
           
-          {/* Información General */}
+          {/* Sección de Información General */}
           <section className="detail-section">
             <h3 className="section-title">Información General</h3>
             <div className="info-grid">
@@ -71,17 +75,16 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
             </div>
           </section>
 
-          {/* Detalles Específicos (Profesor y Horario Mejorado) */}
+          {/* Sección de Detalles Específicos (Profesor y Horario) */}
           <section className="detail-section">
             <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem'}}>
                 
-                {/* Profesor */}
                 <div>
                     <span className="info-label">Docente:</span>
                     <div className="info-value">{displayData.professor}</div>
                 </div>
 
-                {/* Horario Vertical con Salón */}
+                {/* Renderiza la lista de horarios y salones */}
                 <div>
                     <span className="info-label" style={{marginBottom: '8px', display: 'block'}}>Horarios y Salones:</span>
                     <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
@@ -116,7 +119,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
             <p className="description-text">{displayData.description}</p>
           </section>
 
-          {/* Prerrequisitos */}
+          {/* Sección de Prerrequisitos (Datos simulados) */}
           <section className="detail-section">
             <h3 className="section-title">Prerrequisitos</h3>
             <div className="prereq-list">
@@ -131,10 +134,9 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
 
         </div>
 
-        {/* ACTIONS FOOTER (Funcionalidad Pendiente) */}
+        {/* Pie de página con botones de acción */}
         <div className="modal-actions">
             <button className="btn-modal btn-cancel" onClick={onClose}>Cerrar</button>
-            {/* Botones deshabilitados visualmente o funcionales sin lógica compleja por ahora */}
             <button className="btn-modal btn-cancel" disabled title="Funcionalidad próximamente">Simular Inscripción</button>
             <button className="btn-modal btn-confirm" disabled title="Funcionalidad próximamente">Marcar Aprobada</button>
         </div>

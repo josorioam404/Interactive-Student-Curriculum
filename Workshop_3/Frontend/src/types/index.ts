@@ -1,14 +1,14 @@
-// src/types/index.ts
-
+// Define los estados visuales posibles para una asignatura en el mapa curricular
 export type SubjectStatus = 'approved' | 'enrolled' | 'planned' | 'pending' | 'error';
 
+// Estructura la información detallada de una asignatura académica
 export interface Subject {
   code: string;
   name: string;
   credits: number;
   weekly_hours: number;
   description?: string;
-  // Nuevos campos para el detalle completo (según mockup)
+  // Campos opcionales para el detalle extendido en el modal
   theory_hours?: number;
   practice_hours?: number;
   lab_hours?: number;
@@ -16,7 +16,7 @@ export interface Subject {
   schedule?: string;
 }
 
-// ... (El resto del archivo StudyPlanItem y UserProgress sigue igual)
+// Representa un ítem dentro de la malla curricular, vinculando una asignatura a un programa y semestre
 export interface StudyPlanItem {
   id: number;
   program_code_sia: string;
@@ -25,9 +25,11 @@ export interface StudyPlanItem {
   component: string;
   is_obligatory: boolean;
   prereq_rules?: string;
+  // Propiedad extendida para facilitar el acceso a los detalles de la asignatura asociada
   subject?: Subject; 
 }
 
+// Modela el registro de progreso académico de un usuario para una asignatura específica
 export interface UserProgress {
   id: number;
   user_id: number;

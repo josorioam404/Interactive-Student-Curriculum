@@ -1,5 +1,4 @@
-/* src/layouts/MainLayout.css */
-
+/* Define el contenedor principal que abarca toda la pantalla sin scroll externo */
 .layout-container {
   display: flex;
   flex-direction: column;
@@ -9,7 +8,7 @@
   overflow: hidden;
 }
 
-/* --- MAIN HEADER --- */
+/* Estiliza el encabezado principal con degradado institucional y sombra suave */
 .main-header {
   height: var(--header-height);
   background: linear-gradient(90deg, var(--unal-red) 0%, #7a1316 100%);
@@ -24,7 +23,7 @@
   flex-shrink: 0;
 }
 
-/* Estilos internos del header (Logo, Usuario, etc.) */
+/* Agrupa elementos izquierdos del header (Logo, menú móvil) */
 .header-left {
   display: flex;
   align-items: center;
@@ -67,6 +66,7 @@
   font-weight: 300;
 }
 
+/* Agrupa elementos derechos del header (Perfil usuario, logout) */
 .header-right {
   display: flex;
   align-items: center;
@@ -122,7 +122,7 @@
   margin-right: 10px;
 }
 
-/* --- LAYOUT BODY --- */
+/* Contenedor flexible para sidebar y contenido principal */
 .layout-body {
   display: flex;
   flex: 1;
@@ -131,7 +131,7 @@
   width: 100%;
 }
 
-/* --- SIDEBAR --- */
+/* Configura la barra lateral con transición suave de ancho */
 .sidebar {
   width: var(--sidebar-width);
   background-color: white;
@@ -143,6 +143,7 @@
   position: relative;
 }
 
+/* Estilos específicos para el estado colapsado del sidebar */
 .sidebar.collapsed {
   width: 80px;
 }
@@ -157,6 +158,7 @@
   padding: 12px 0;
 }
 
+/* Botón flotante para colapsar/expandir sidebar */
 .sidebar-toggle-btn {
   position: absolute;
   top: 15px;
@@ -227,7 +229,7 @@
   white-space: nowrap;
 }
 
-/* --- CONTENIDO PRINCIPAL --- */
+/* Área de contenido principal donde se renderizan las páginas */
 .main-content {
   flex: 1;
   display: flex;
@@ -237,22 +239,19 @@
   position: relative;
 }
 
-/* Contenedor Scrollable */
+/* Contenedor scrollable interno para el contenido y footer */
 .page-scroll-container {
   flex: 1;
-  overflow-y: auto; /* Aquí está el scroll vertical de la página */
+  overflow-y: auto; 
   display: flex;
-  flex-direction: column; /* Para que el footer quede al final */
+  flex-direction: column; 
   padding: 0;
 }
 
-/* El Outlet (contenido de la página) crece para empujar el footer */
 .page-content-wrapper {
   flex: 1;
-  /* Aquí no ponemos padding, lo dejamos en el CSS de cada página individual */
 }
 
-/* Footer del Sitio */
 .app-footer {
   padding: 1.5rem;
   text-align: center;
@@ -260,11 +259,11 @@
   color: var(--unal-gray);
   background-color: white;
   border-top: 1px solid #e0e0e0;
-  flex-shrink: 0; /* Evita que se aplaste */
-  margin-top: auto; /* Asegura que se vaya al fondo si el contenido es corto */
+  flex-shrink: 0; 
+  margin-top: auto; 
 }
 
-/* RESPONSIVE */
+/* Ajustes para dispositivos móviles */
 @media (max-width: 768px) {
   .menu-btn-mobile {
     display: block;

@@ -1,5 +1,5 @@
 :root {
-  /* Colores Institucionales UNAL */
+  /* Define variables globales para colores institucionales, indicadores de estado y constantes de diseño */
   --unal-red: #95191C;       
   --unal-dark: #2C2A29;      
   --unal-gray: #666666;
@@ -25,7 +25,7 @@
   --border-radius: 8px;
 }
 
-/* RESET GLOBAL OBLIGATORIO */
+/* Resetea márgenes por defecto y asegura que el documento ocupe todo el espacio disponible */
 html {
   margin: 0;
   padding: 0;
@@ -33,6 +33,7 @@ html {
   height: 100%;
 }
 
+/* Configura la tipografía global y delega el control del desplazamiento a los contenedores internos */
 body {
   margin: 0;
   padding: 0;
@@ -41,17 +42,17 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   background-color: var(--unal-light-gray);
   color: var(--unal-dark);
-  overflow: hidden; /* Evitamos scroll en el body, lo manejamos internamente */
+  overflow: hidden; 
 }
 
-/* ESTO ES LO QUE ARREGLA EL ESPACIO */
+/* Sobrescribe los estilos predeterminados del framework para forzar el diseño de pantalla completa */
 #root {
-  width: 100vw;       /* 100% del ancho del viewport */
-  height: 100vh;      /* 100% del alto del viewport */
+  width: 100vw;       
+  height: 100vh;      
   margin: 0 !important;
   padding: 0 !important;
-  max-width: none !important; /* Sobrescribe restricciones de Vite */
+  max-width: none !important; 
   display: flex;
   flex-direction: column;
-  text-align: left !important; /* Quita el centrado de texto */
+  text-align: left !important; 
 }

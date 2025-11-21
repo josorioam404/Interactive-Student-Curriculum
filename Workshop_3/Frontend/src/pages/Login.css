@@ -1,18 +1,18 @@
-/* src/pages/Login.css */
+/* Centra el contenedor de inicio de sesión vertical y horizontalmente en la pantalla */
 .login-container {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background-color: #ffffff; /* Fondo blanco según mockup */
+  background-color: #ffffff;
 }
 
+/* Estiliza la tarjeta principal, eliminando bordes para un diseño limpio */
 .login-card {
   padding: 2rem;
   width: 100%;
   max-width: 450px;
   text-align: center;
-  /* Quitamos borde y sombra para parecer más al mockup limpio */
 }
 
 .login-logo {
@@ -34,6 +34,7 @@
   line-height: 1.5;
 }
 
+/* Configura la estructura de los grupos de formulario */
 .form-group {
   margin-bottom: 1.2rem;
   text-align: left;
@@ -56,6 +57,7 @@
   background-color: #fff;
 }
 
+/* Botón principal con color institucional para la acción de ingreso */
 .btn-primary {
   width: 100%;
   padding: 12px;
@@ -69,6 +71,7 @@
   margin-bottom: 1rem;
 }
 
+/* Botón secundario con estilo de contorno para registro */
 .btn-secondary {
   width: 100%;
   padding: 12px;
@@ -91,7 +94,7 @@
 .link-btn {
   background: none;
   border: none;
-  color: #d42f2f; /* Azul enlace */
+  color: #d42f2f; 
   cursor: pointer;
   font-size: 0.95rem;
   font-weight: 500;
@@ -102,6 +105,7 @@
   color: var(--unal-gray);
 }
 
+/* Estiliza los mensajes de error de validación */
 .error-message {
   background-color: var(--status-error-bg);
   color: #d32f2f;
@@ -109,4 +113,33 @@
   border-radius: 4px;
   margin-bottom: 1rem;
   font-size: 0.9rem;
+}
+
+/* Contenedor relativo para posicionar el botón de visibilidad de contraseña */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Añade espacio a la derecha para evitar solapamiento con el ícono */
+.password-input {
+  padding-right: 40px; 
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--unal-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.toggle-password-btn:hover {
+  color: var(--unal-dark);
 }
