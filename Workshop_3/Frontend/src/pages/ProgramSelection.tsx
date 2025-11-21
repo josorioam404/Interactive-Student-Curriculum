@@ -4,17 +4,18 @@ import { engineeringPrograms } from '../data/engineeringPrograms';
 import './ProgramSelection.css';
 
 export const ProgramSelection: React.FC = () => {
-    // Guardamos el ID del programa seleccionado
+    // Gestiona el estado del ID del programa seleccionado para controlar la expansión de tarjetas
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const navigate = useNavigate();
 
+    // Alterna el estado de selección de una tarjeta al interactuar con ella
     const handleProgramClick = (id: string) => {
-        // Si ya está seleccionado, lo deseleccionamos (toggle), si no, lo seleccionamos
         setSelectedId(prevId => prevId === id ? null : id);
     };
 
+    // Detiene la propagación del evento para evitar cerrar la tarjeta y navega al dashboard
     const handleLoadCurriculum = (e: React.MouseEvent, programName: string) => {
-        e.stopPropagation(); // Evita que el click llegue a la tarjeta y la cierre
+        e.stopPropagation(); 
         console.log(`Cargando malla de: ${programName}`);
         navigate('/dashboard');
     };
@@ -24,6 +25,7 @@ export const ProgramSelection: React.FC = () => {
             <h1 className="page-title">Selecciona tu Programa de Ingeniería</h1>
             
             <div className="programs-grid">
+                {/* Itera sobre la lista de programas para renderizar las tarjetas individuales */}
                 {engineeringPrograms.map((program) => {
                     const isSelected = selectedId === program.id;
 
@@ -33,13 +35,13 @@ export const ProgramSelection: React.FC = () => {
                             className={`program-card ${isSelected ? 'selected' : ''}`}
                             onClick={() => handleProgramClick(program.id)}
                         >
-                            {/* Contenido Principal de la Tarjeta */}
+                            {/* Renderiza el contenido principal visible de la tarjeta */}
                             <div className="card-header-content">
                                 <h3 className="program-name">{program.name}</h3>
                                 <p className="program-desc">{program.description}</p>
                             </div>
 
-                            {/* SECCIÓN DESPLEGABLE (Solo visible si está seleccionado) */}
+                            {/* Renderiza condicionalmente la sección expandida con el resumen y botón de acción */}
                             {isSelected && (
                                 <div className="card-expanded-content">
                                     <div className="divider-line"></div>

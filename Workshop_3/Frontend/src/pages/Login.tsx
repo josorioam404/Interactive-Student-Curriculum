@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react'; 
 import logoUnal from '../assets/logo_unal.png';
 import './Login.css';
 
-// CORRECCIÓN: Definimos la interfaz en lugar de usar 'any'
+// Define la estructura de datos para la sesión del usuario
 interface UserSessionData {
   name: string;
   role: string;
@@ -13,18 +14,19 @@ interface UserSessionData {
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   
+  // Gestiona el estado local para las credenciales, visibilidad de contraseña y errores
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); 
   const [error, setError] = useState('');
 
+  // Valida las credenciales contra datos estáticos y redirige según el rol
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // 1. Usuario ADMIN (Tus credenciales solicitadas)
     if (email === 'folmos@unal.edu.co' && password === 'Admin12345') {
       saveUserAndRedirect({ name: 'Frank Olmos', role: 'admin', dept: 'Ingeniería de Sistemas' });
     } 
-    // 2. Usuario ESTUDIANTE (Ejemplo)
     else if (email === 'estudiante@unal.edu.co' && password === 'Estudiante123') {
       saveUserAndRedirect({ name: 'Pepito Pérez', role: 'student', dept: 'Ingeniería Industrial' });
     } 
@@ -33,15 +35,15 @@ export const Login: React.FC = () => {
     }
   };
 
+  // Habilita el acceso limitado para usuarios invitados
   const handleGuestAccess = () => {
-    // 3. Usuario INVITADO
     saveUserAndRedirect({ name: 'Invitado', role: 'guest', dept: 'Visitante' });
   };
 
-  // Aquí aplicamos el tipo UserSessionData en lugar de 'any'
+  // Persiste la sesión del usuario en el almacenamiento local y navega al dashboard
   const saveUserAndRedirect = (userData: UserSessionData) => {
     localStorage.setItem('user', JSON.stringify(userData));
-    navigate('/select-program');
+    navigate('/dashboard');
   };
 
   return (
@@ -72,15 +74,26 @@ export const Login: React.FC = () => {
 
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="password-wrapper">
+              {/* Alterna el tipo de input entre text y password según la visibilidad */}
+              <input
+                type={showPassword ? "text" : "password"} 
+                id="password"
+                className="form-input password-input"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button"
+                className="toggle-password-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           <button type="submit" className="btn-primary">Ingresar</button>

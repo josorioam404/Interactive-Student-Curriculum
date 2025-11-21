@@ -4,32 +4,30 @@ import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { AcademicReport } from './pages/AcademicReport';
 import { AdminPanel } from './pages/AdminPanel';
-// --- ESTA ES LA LÍNEA QUE FALTABA ---
 import { ProgramSelection } from './pages/ProgramSelection'; 
-// ------------------------------------
 import './App.css';
 
 function App() {
   return (
+    // Habilita el enrutamiento basado en el historial del navegador para la aplicación
     <BrowserRouter>
       <Routes>
-        {/* Ruta pública: Login */}
+        {/* Define la ruta de acceso público para la autenticación */}
         <Route path="/login" element={<Login />} />
 
-        {/* Rutas protegidas: Usan el MainLayout */}
+        {/* Establece el diseño principal para las rutas protegidas internas */}
         <Route path="/" element={<MainLayout />}>
-          {/* Redirección inicial: Si entra a la raíz, ir a selección de programa */}
+          {/* Redirige la ruta raíz a la selección de programa por defecto */}
           <Route index element={<Navigate to="/select-program" replace />} />
           
-          {/* Ruta de Selección de Programa */}
+          {/* Mapea las rutas funcionales a sus respectivos componentes de página */}
           <Route path="select-program" element={<ProgramSelection />} />
-          
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="report" element={<AcademicReport />} />
           <Route path="admin" element={<AdminPanel />} />
         </Route>
 
-        {/* Captura cualquier ruta desconocida */}
+        {/* Captura cualquier ruta no definida y redirige al inicio de sesión */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>

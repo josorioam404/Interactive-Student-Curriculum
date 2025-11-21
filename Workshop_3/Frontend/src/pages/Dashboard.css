@@ -1,16 +1,15 @@
-/* src/pages/Dashboard.css */
-
+/* Configura el diseño principal del dashboard como una columna flexible que ocupa toda la altura disponible */
 .dashboard-container {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
     width: 100%;
-    height: 100%; /* Ocupa todo el alto disponible */
-    overflow: hidden; /* El scroll lo manejan los componentes internos */
+    height: 100%;
+    overflow: hidden; /* Delega el manejo del desplazamiento a los componentes internos */
     padding-bottom: 20px;
 }
 
-/* --- SECCIÓN DE MÉTRICAS (Resumen Académico) --- */
+/* Define una cuadrícula responsiva para el panel de métricas académicas */
 .metrics-panel {
     background-color: white;
     border: 1px solid #e0e0e0;
@@ -20,7 +19,7 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 2rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-    flex-shrink: 0; /* No se encoge */
+    flex-shrink: 0;
 }
 
 .metric-card {
@@ -49,7 +48,7 @@
     color: #888;
 }
 
-/* Barras de Progreso */
+/* Estiliza las barras de progreso visual utilizando la paleta institucional */
 .progress-container {
     width: 100%;
     height: 8px;
@@ -61,16 +60,16 @@
 
 .progress-bar {
     height: 100%;
-    background-color: var(--unal-red); /* Vinotinto Institucional */
+    background-color: var(--unal-red);
     border-radius: 4px;
     transition: width 1s ease-in-out;
 }
 
 .progress-bar.blue {
-    background-color: var(--status-planned-border); /* Azul para promedios */
+    background-color: var(--status-planned-border);
 }
 
-/* --- BARRA DE HERRAMIENTAS (Buscador y Filtros) --- */
+/* Alinea los controles de búsqueda y filtrado horizontalmente */
 .toolbar-container {
     display: flex;
     justify-content: space-between;
@@ -82,6 +81,7 @@
     flex-shrink: 0;
 }
 
+/* Posiciona el ícono de búsqueda de forma absoluta dentro del contenedor del input */
 .search-box {
     position: relative;
     width: 300px;
@@ -91,7 +91,7 @@
 
 .search-input {
     width: 100%;
-    padding: 10px 10px 10px 40px; /* Espacio para el ícono */
+    padding: 10px 10px 10px 40px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 0.9rem;
@@ -131,10 +131,10 @@
     outline: none;
 }
 
-/* --- CONTENEDOR DE LA MALLA --- */
+/* Define el contenedor flexible para la grilla curricular */
 .curriculum-scroll-area {
-    flex: 1; /* Ocupa el resto del espacio vertical */
-    overflow: hidden; /* El componente Grid manejará su propio scroll */
+    flex: 1; /* Ocupa el espacio vertical restante */
+    overflow: hidden;
     border: 1px solid #e0e0e0;
     border-radius: var(--border-radius);
     background-color: white;
@@ -143,7 +143,7 @@
     flex-direction: column;
 }
 
-/* Ajuste Responsivo */
+/* Adapta el diseño para dispositivos móviles apilando elementos */
 @media (max-width: 768px) {
     .toolbar-container {
         flex-direction: column;
@@ -154,6 +154,6 @@
         width: 100%;
     }
     .metrics-panel {
-        grid-template-columns: 1fr; /* Una columna en móvil */
+        grid-template-columns: 1fr;
     }
 }

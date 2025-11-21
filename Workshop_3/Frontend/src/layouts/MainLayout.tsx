@@ -4,6 +4,7 @@ import { Menu, X, BookOpen, LayoutDashboard, Settings, LogOut, UserCircle, Chevr
 import logoUnal from '../assets/logo_unal.png';
 import './MainLayout.css';
 
+// Define la estructura de los datos del usuario para tipado
 interface UserData {
   name: string;
   role: string;
@@ -11,22 +12,26 @@ interface UserData {
 }
 
 export const MainLayout: React.FC = () => {
+  // Controla la visibilidad del menú en móvil y el estado colapsado en escritorio
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   
+  // Inicializa el estado del usuario leyendo directamente del almacenamiento local
   const [user, setUser] = useState<UserData | null>(() => {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
+  // Redirige al login si no existe una sesión de usuario activa
   useEffect(() => {
     if (!user) {
       navigate('/login');
     }
   }, [user, navigate]);
 
+  // Gestiona el cierre de sesión limpiando el almacenamiento y el estado
   const handleLogout = () => {
     localStorage.removeItem('user');
     setUser(null);
@@ -49,6 +54,7 @@ export const MainLayout: React.FC = () => {
       
       <header className="main-header">
         <div className="header-left">
+          {/* Botón de menú visible solo en dispositivos móviles */}
           <button className="menu-btn-mobile" onClick={() => setSidebarOpen(!isSidebarOpen)}>
             {isSidebarOpen ? <X color="white" /> : <Menu color="white" />}
           </button>
@@ -84,9 +90,10 @@ export const MainLayout: React.FC = () => {
       </header>
 
       <div className="layout-body">
-        {/* Sidebar */}
+        {/* Renderiza la barra lateral con clases condicionales para apertura móvil y colapso */}
         <aside className={`sidebar ${isSidebarOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
           
+          {/* Botón para alternar el estado colapsado del menú */}
           <button 
             className="sidebar-toggle-btn" 
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -109,6 +116,7 @@ export const MainLayout: React.FC = () => {
               </Link>
             ))}
 
+            {/* Renderiza elementos administrativos solo si el rol es 'admin' */}
             {user.role === 'admin' && (
               <>
                 <div className="nav-divider">ADMINISTRACIÓN</div>
@@ -129,7 +137,7 @@ export const MainLayout: React.FC = () => {
           </nav>
         </aside>
 
-        {/* Contenido Principal con Footer */}
+        {/* Contenedor principal del contenido con scroll interno y pie de página */}
         <main className="main-content">
            <div className="page-scroll-container">
               <div className="page-content-wrapper">

@@ -1,0 +1,225 @@
+/* Configura el contenedor principal con restricciones de ancho máximo y espaciado responsivo */
+.admin-container {
+    padding: 1rem 2rem 4rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Estiliza el indicador visual del modo administrador */
+.admin-badge {
+    display: inline-block;
+    background-color: #ffebee;
+    color: var(--unal-red);
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid #ffcdd2;
+    margin-bottom: 2rem;
+}
+
+/* Define la cuadrícula superior para las tarjetas de carga y edición con ajuste automático */
+.admin-top-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Estilos base para los contenedores de tarjetas */
+.admin-card {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--unal-dark);
+    margin-bottom: 0.5rem;
+}
+
+.card-description {
+    font-size: 0.9rem;
+    color: var(--unal-gray);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+/* Zona interactiva para la carga de archivos (Drag & Drop) */
+.upload-zone {
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 3rem 1rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    background-color: #fafafa;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.upload-zone:hover {
+    border-color: var(--unal-red);
+    background-color: #fffbfb;
+}
+
+.upload-icon {
+    color: var(--unal-gray);
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--unal-dark);
+    margin-bottom: 0.5rem;
+}
+
+.upload-subtext {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.btn-upload {
+    width: 100%;
+    background-color: var(--unal-red);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-upload:hover {
+    background-color: #7a1316;
+}
+
+/* Contenedor relativo para posicionar el ícono de búsqueda dentro del input */
+.search-wrapper {
+    position: relative;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.search-input-admin {
+    width: 100%;
+    padding: 10px 10px 10px 36px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-sizing: border-box; /* Evita desbordamiento por padding */
+}
+
+.search-icon-admin {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+.form-field {
+    margin-bottom: 1rem;
+}
+
+.form-field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--unal-dark);
+    margin-bottom: 0.4rem;
+}
+
+/* Estilos generales para inputs de formulario asegurando consistencia dimensional */
+.admin-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background-color: #fff;
+    box-sizing: border-box; 
+    height: 42px; /* Iguala la altura con el campo de búsqueda */
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn-secondary {
+    background-color: white;
+    border: 1px solid #ddd;
+    color: var(--unal-gray);
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--unal-red);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Configura la tabla de historial con soporte para scroll horizontal */
+.history-table-wrapper {
+    overflow-x: auto;
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.history-table th {
+    text-align: left;
+    padding: 12px;
+    background-color: #f9f9f9;
+    color: var(--unal-gray);
+    font-weight: 600;
+    border-bottom: 1px solid #eee;
+}
+
+.history-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    color: var(--unal-dark);
+}
+
+/* Etiquetas de estado para diferenciar tipos de acciones en el historial */
+.action-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.action-badge.edicion { background-color: #e3f2fd; color: #1976d2; }
+.action-badge.creacion { background-color: #e8f5e9; color: #2e7d32; }
+.action-badge.eliminacion { background-color: #ffebee; color: #c62828; }
+.action-badge.carga { background-color: #fff3e0; color: #ef6c00; }
+
+/* Ajustes de responsividad para móviles */
+@media (max-width: 768px) {
+    .admin-top-grid {
+        grid-template-columns: 1fr;
+    }
+}
