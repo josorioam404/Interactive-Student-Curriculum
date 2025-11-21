@@ -100,7 +100,7 @@ export const Login: React.FC = () => {
         </form>
 
         <div className="login-actions">
-          <button className="btn-secondary" onClick={() => alert("Funcionalidad de Registro pendiente")}>
+          <button className="btn-secondary" onClick={() => navigate('/signup')}>
             Registrarse
           </button>
         </div>
