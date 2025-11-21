@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './layouts/MainLayout';
 import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
 import { Dashboard } from './pages/Dashboard';
 import { AcademicReport } from './pages/AcademicReport';
 import { AdminPanel } from './pages/AdminPanel';
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         {/* Define la ruta de acceso público para la autenticación */}
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
 
         {/* Establece el diseño principal para las rutas protegidas internas */}
         <Route path="/" element={<MainLayout />}>
