@@ -1,18 +1,21 @@
 package com.curriculum.auth.controller;
 
 import com.curriculum.auth.application.dto.AuthResponse;
+import com.curriculum.auth.application.dto.FileUploadResponse;
 import com.curriculum.auth.application.dto.ErrorResponse;
 import com.curriculum.auth.application.dto.RegisterRequest;
 import com.curriculum.auth.application.service.AuditLogService;
 import com.curriculum.auth.application.service.AuthService;
 import com.curriculum.auth.domain.model.LogEntry;
 import com.curriculum.auth.infrastructure.repository.LogEntryRepository;
+import com.curriculum.auth.application.service.CurriculumImportService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,13 +27,16 @@ public class AdminController {
   private final LogEntryRepository logEntryRepository;
   private final AuditLogService auditLogService;
   private final AuthService authService;
+  private final CurriculumImportService curriculumImportService;
 
   public AdminController(LogEntryRepository logEntryRepository,
       AuditLogService auditLogService,
-      AuthService authService) {
+      AuthService authService,
+      CurriculumImportService curriculumImportService) {
     this.logEntryRepository = logEntryRepository;
     this.auditLogService = auditLogService;
     this.authService = authService;
+    this.curriculumImportService = curriculumImportService;
   }
 
   // GET /admin/logs - ADMIN ONLY
@@ -65,6 +71,49 @@ public class AdminController {
       return ResponseEntity
           .status(HttpStatus.BAD_REQUEST)
           .body(new ErrorResponse("BAD_REQUEST", ex.getMessage()));
+    }
+  }
+
+  // POST /admin/upload-curriculum - ADMIN ONLY
+  @PostMapping("/upload-curriculum")
+  @PreAuthorize("hasRole('ADMIN')")
+  public ResponseEntity<?> uploadCurriculum(
+      @RequestParam("file") MultipartFile file,
+      Authentication authentication) {
+    try {
+      // Validate file
+      if (!curriculumImportService.validateFile(file)) {
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(new ErrorResponse("BAD_REQUEST",
+                "Archivo inválido. Debe ser CSV o JSON y menor a 10MB."));
+      }
+
+      // Process file
+      FileUploadResponse response = curriculumImportService.processFile(file);
+
+      // Log the action if successful
+      if (response.isSuccess()) {
+        Integer adminId = extractUserId(authentication);
+        auditLogService.logAdminAction(
+            adminId,
+            "UPLOAD_CURRICULUM",
+            "CurriculumFile",
+            response.getFileName(),
+            String.format("Uploaded %s: %d processed, %d created, %d updated, %d failed",
+                response.getFileName(),
+                response.getRecordsProcessed(),
+                response.getRecordsCreated(),
+                response.getRecordsUpdated(),
+                response.getRecordsFailed()));
+      }
+
+      return ResponseEntity.ok(response);
+    } catch (Exception ex) {
+      return ResponseEntity
+          .status(HttpStatus.INTERNAL_SERVER_ERROR)
+          .body(new ErrorResponse("INTERNAL_ERROR",
+              "Error procesando archivo: " + ex.getMessage()));
     }
   }
 

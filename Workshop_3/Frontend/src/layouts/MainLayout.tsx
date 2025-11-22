@@ -144,7 +144,7 @@ export const MainLayout: React.FC = () => {
                   <Outlet /> 
               </div>
               <footer className="app-footer">
-                © 2025 Universidad Nacional de Colombia - Diseño de Software II
+                © 2025 Universidad Nacional de Colombia - Ingeniería de Software II
               </footer>
            </div>
         </main>

@@ -224,10 +224,7 @@
     }
 }
 
-/* Add these styles to your existing AdminPanel.css */
-
-
-/* Message notifications */
+/* Notificaciones de mensajes*/
 .admin-message {
   padding: 16px;
   border-radius: 8px;
@@ -262,7 +259,7 @@
   }
 }
 
-/* Spinning icon for refresh button */
+/* Icono rotatorio de carga */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -276,7 +273,6 @@
   animation: spin 1s linear infinite;
 }
 
-/* Enhanced action badges */
 .action-badge {
   padding: 4px 12px;
   border-radius: 12px;
@@ -306,14 +302,13 @@
   color: #92400e;
 }
 
-/* Button enhancements */
 .btn-primary:disabled,
 .btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-/* Ensure admin-top-grid can accommodate 3 cards */
+/* Ajuste de cards en panel */
 .admin-top-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -321,7 +316,6 @@
   margin-bottom: 24px;
 }
 
-/* Form field improvements */
 .form-field {
   margin-bottom: 16px;
 }
@@ -354,7 +348,6 @@
   cursor: not-allowed;
 }
 
-/* Table enhancements */
 .history-table-wrapper {
   overflow-x: auto;
   border-radius: 8px;
@@ -394,4 +387,132 @@
 
 .history-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* Ajuste de zona de carga de archivos */
+.upload-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f9fafb;
+}
+
+.upload-zone:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.upload-zone.dragging {
+  border-color: #3b82f6;
+  background-color: #dbeafe;
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #6b7280;
+}
+
+.upload-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.upload-subtext {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.btn-upload {
+  width: 100%;
+  padding: 12px 24px;
+  background-color: #991b1b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 16px;
+}
+
+.btn-upload:hover:not(:disabled) {
+  background-color: #7f1d1d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(153, 27, 27, 0.3);
+}
+
+.btn-upload:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.upload-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: #f9fafb;
+}
+
+.upload-zone:hover {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+}
+
+.upload-zone.dragging {
+  border-color: #3b82f6;
+  background-color: #dbeafe;
+  transform: scale(1.02);
+}
+
+.upload-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+  color: #6b7280;
+}
+
+.upload-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.upload-subtext {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.btn-upload {
+  width: 100%;
+  padding: 12px 24px;
+  background-color: #991b1b;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 16px;
+}
+
+.btn-upload:hover:not(:disabled) {
+  background-color: #7f1d1d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(153, 27, 27, 0.3);
+}
+
+.btn-upload:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

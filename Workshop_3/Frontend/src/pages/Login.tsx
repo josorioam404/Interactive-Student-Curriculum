@@ -90,7 +90,7 @@ export const Login: React.FC = () => {
               type="email"
               id="email"
               className="form-input"
-              placeholder="tu.correo@unal.edu.co"
+              placeholder="Ej: tu.correo@unal.edu.co"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

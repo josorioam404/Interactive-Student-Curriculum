@@ -26,7 +26,7 @@ export const ProgramSelection: React.FC = () => {
             const token = localStorage.getItem('accessToken');
             
             if (!token) {
-                setError('No authentication token found. Please login again.');
+                setError('No se encontró un token de autorización. Por favor inicie sesión de nuevo.');
                 setIsLoading(false);
                 setTimeout(() => navigate('/login'), 2000);
                 return;
@@ -39,8 +39,6 @@ export const ProgramSelection: React.FC = () => {
                 setIsLoading(false);
                 return;
             }
-
-            console.log(`Updating program to: ${programName} (${selectedProgram.code})`);
 
             // Send program update to backend
             const response = await fetch('http://localhost:8080/auth/update-program', {
@@ -55,12 +53,11 @@ export const ProgramSelection: React.FC = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-                throw new Error(errorData.message || 'Failed to update program');
+                const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+                throw new Error(errorData.message || 'Error al actualizar el programa');
             }
 
             const data = await response.json();
-            console.log('Program updated successfully:', data);
 
             // Update localStorage with new program code
             const userStr = localStorage.getItem('user');
@@ -75,7 +72,6 @@ export const ProgramSelection: React.FC = () => {
             navigate('/dashboard');
 
         } catch (err: any) {
-            console.error('Error updating program:', err);
             setError(err.message || 'Error al actualizar el programa');
         } finally {
             setIsLoading(false);
