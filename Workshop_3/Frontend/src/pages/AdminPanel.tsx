@@ -31,6 +31,11 @@ export const AdminPanel: React.FC = () => {
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  // Estados para subir archivos 
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   // Accede al token para verificar que el admin esté autenticado
   const getToken = () => {
     const token = localStorage.getItem('accessToken') || '';
@@ -47,7 +52,7 @@ export const AdminPanel: React.FC = () => {
     const token = getToken();
     
     if (!token) {
-      showMessage('error', 'No authentication token found. Please login again.');
+      showMessage('error', 'No se encontró un token de autorización. Por favor inicie sesión de nuevo.');
       setIsLoadingLogs(false);
       return;
     }
@@ -65,10 +70,10 @@ export const AdminPanel: React.FC = () => {
         setAuditLogs(data);
       } else {
         const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        showMessage('error', 'Failed to fetch audit logs: ' + (errorData.message || response.statusText));
+        showMessage('error', 'No se pudieron encontrar audit logs:' + (errorData.message || response.statusText));
       }
     } catch (error) {
-      showMessage('error', 'Network error fetching logs: ' + error);
+      showMessage('error', 'Error de red buscando los audit logs: ' + error);
     } finally {
       setIsLoadingLogs(false);
     }
@@ -77,14 +82,14 @@ export const AdminPanel: React.FC = () => {
   // creación de nuevo ADMIN
   const handleCreateAdmin = async () => {
     if (!newAdminData.fullName || !newAdminData.email || !newAdminData.password) {
-      showMessage('error', 'Please fill all fields');
+      showMessage('error', 'Por favor llena todos los campos');
       return;
     }
 
     const token = getToken();
     
     if (!token) {
-      showMessage('error', 'No authentication token found. Please login again.');
+      showMessage('error', 'No se encontró un token de autorización. Por favor inicie sesión de nuevo.');
       return;
     }
 
@@ -101,15 +106,15 @@ export const AdminPanel: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        showMessage('success', `Admin created: ${data.email}`);
+        showMessage('Éxito', `Admin creado: ${data.email}`);
         setNewAdminData({ fullName: '', email: '', password: '' });
         // Refrescar logs después de acción 
         fetchAuditLogs();
       } else {
-        showMessage('error', data.message || 'Failed to create admin');
+        showMessage('error', data.message || 'Error al crear admin');
       }
     } catch (error) {
-      showMessage('error', 'Error creating admin: ' + error);
+      showMessage('error', 'Error al crear admin: ' + error);
     }
   };
 
@@ -126,6 +131,96 @@ export const AdminPanel: React.FC = () => {
     if (action.includes('Creación') || action.includes('CREATE')) return 'creacion';
     if (action.includes('Eliminación') || action.includes('DELETE')) return 'eliminacion';
     return 'carga'; 
+  };
+
+  // Handlers para actualización de malla con archivo CSV o JSON  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const file = files[0];
+      if (validateFileType(file)) {
+        setUploadedFile(file);
+      } else {
+        showMessage('error', 'Solo se permiten archivos CSV o JSON');
+      }
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      if (validateFileType(file)) {
+        setUploadedFile(file);
+      } else {
+        showMessage('error', 'Solo se permiten archivos CSV o JSON');
+      }
+    }
+  };
+
+  const validateFileType = (file: File): boolean => {
+    const validTypes = ['text/csv', 'application/json', 'text/plain'];
+    const validExtensions = ['.csv', '.json'];
+    const fileName = file.name.toLowerCase();
+    
+    return validTypes.includes(file.type) || 
+           validExtensions.some(ext => fileName.endsWith(ext));
+  };
+
+  const handleUploadFile = async () => {
+    if (!uploadedFile) {
+      showMessage('error', 'Por favor selecciona un archivo');
+      return;
+    }
+
+    setIsUploading(true);
+    const token = getToken();
+
+    try {
+      const formData = new FormData();
+      formData.append('file', uploadedFile);
+
+      const response = await fetch('http://localhost:8080/admin/upload-curriculum', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      const data = await response.json();
+      if (response.ok && data.success) {
+        showMessage('success', 
+          `Archivo procesado: ${data.recordsProcessed} registros, ` +
+          `${data.recordsCreated} creados, ${data.recordsUpdated} actualizados`
+        );
+        setUploadedFile(null);
+        fetchAuditLogs();
+      } else {
+        showMessage('error', data.message || 'Error al procesar archivo');
+      }
+    } catch (error) {
+      showMessage('error', 'Error de red al subir archivo');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null);
   };
 
   return (
@@ -197,22 +292,56 @@ export const AdminPanel: React.FC = () => {
           </div>
         </div>
 
+        {/* File Upload Card - EXISTING */}
         <div className="admin-card">
           <h3 className="card-title">Carga de Archivos Curriculares</h3>
           <p className="card-description">
             Sube archivos CSV o JSON para actualizar la malla curricular masivamente.
           </p>
-          
-          <div className="upload-zone">
+
+          <div 
+            className={`upload-zone ${isDragging ? 'dragging' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => document.getElementById('file-input')?.click()}
+          >
             <div className="upload-icon">
               <Upload size={48} strokeWidth={1.5} />
             </div>
-            <p className="upload-text">Arrastra y suelta tus archivos aquí</p>
-            <p className="upload-subtext">Formatos soportados: .CSV, .JSON</p>
+            {uploadedFile ? (
+              <div>
+                <p className="upload-text">Archivo seleccionado:</p>
+                <p className="upload-subtext">{uploadedFile.name}</p>
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleRemoveFile(); }}
+                  style={{ marginTop: '8px', color: '#ef4444', textDecoration: 'underline', cursor: 'pointer', background: 'none', border: 'none' }}
+                >
+                  Remover archivo
+                </button>
+              </div>
+            ) : (
+                <>
+                  <p className="upload-text">Arrastra y suelta tus archivos aquí</p>
+                  <p className="upload-subtext">Formatos soportados: .CSV, .JSON</p>
+                </>
+              )}
           </div>
 
-          <button className="btn-upload" onClick={() => alert("Funcionalidad de carga simulada")}>
-            Subir Malla Curricular
+          <input 
+            id="file-input"
+            type="file"
+            accept=".csv,.json"
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+
+          <button 
+            className="btn-upload" 
+            onClick={handleUploadFile}
+            disabled={!uploadedFile || isUploading}
+          >
+            {isUploading ? 'Subiendo...' : 'Subir Malla Curricular'}
           </button>
         </div>
 

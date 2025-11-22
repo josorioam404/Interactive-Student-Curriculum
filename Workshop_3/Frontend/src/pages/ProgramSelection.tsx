@@ -6,6 +6,8 @@ import './ProgramSelection.css';
 export const ProgramSelection: React.FC = () => {
     // Gestiona el estado del ID del programa seleccionado para controlar la expansión de tarjetas
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     // Alterna el estado de selección de una tarjeta al interactuar con ella
@@ -14,21 +16,90 @@ export const ProgramSelection: React.FC = () => {
     };
 
     // Detiene la propagación del evento para evitar cerrar la tarjeta y navega al dashboard
-    const handleLoadCurriculum = (e: React.MouseEvent, programName: string) => {
-        e.stopPropagation(); 
-        console.log(`Cargando malla de: ${programName}`);
-        navigate('/dashboard');
+    const handleLoadCurriculum = async (e: React.MouseEvent, programId: string, programName: string) => {
+        e.stopPropagation();
+        setIsLoading(true);
+        setError('');
+
+        try {
+            // Get token from localStorage
+            const token = localStorage.getItem('accessToken');
+            
+            if (!token) {
+                setError('No se encontró un token de autorización. Por favor inicie sesión de nuevo.');
+                setIsLoading(false);
+                setTimeout(() => navigate('/login'), 2000);
+                return;
+            }
+
+            // Find the selected program to get its code
+            const selectedProgram = engineeringPrograms.find(p => p.id === programId);
+            if (!selectedProgram) {
+                setError('Program not found');
+                setIsLoading(false);
+                return;
+            }
+
+            // Send program update to backend
+            const response = await fetch('http://localhost:8080/auth/update-program', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    programCode: selectedProgram.code
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+                throw new Error(errorData.message || 'Error al actualizar el programa');
+            }
+
+            const data = await response.json();
+
+            // Update localStorage with new program code
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                user.programCode = selectedProgram.code;
+                user.programName = programName;
+                localStorage.setItem('user', JSON.stringify(user));
+            }
+
+            // Navigate to dashboard
+            navigate('/dashboard');
+
+        } catch (err: any) {
+            setError(err.message || 'Error al actualizar el programa');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
         <div className="program-selection-container">
             <h1 className="page-title">Selecciona tu Programa de Ingeniería</h1>
             
+            {error && (
+                <div style={{
+                    padding: '12px',
+                    marginBottom: '20px',
+                    backgroundColor: '#fee2e2',
+                    border: '1px solid #fca5a5',
+                    borderRadius: '8px',
+                    color: '#991b1b',
+                    textAlign: 'center'
+                }}>
+                    {error}
+                </div>
+            )}
+
             <div className="programs-grid">
                 {/* Itera sobre la lista de programas para renderizar las tarjetas individuales */}
                 {engineeringPrograms.map((program) => {
                     const isSelected = selectedId === program.id;
-
                     return (
                         <div 
                             key={program.id}
@@ -52,9 +123,10 @@ export const ProgramSelection: React.FC = () => {
                                     </div>
                                     <button 
                                         className="load-curriculum-btn" 
-                                        onClick={(e) => handleLoadCurriculum(e, program.name)}
+                                        onClick={(e) => handleLoadCurriculum(e, program.id, program.name)}
+                                        disabled={isLoading}
                                     >
-                                        Cargar Malla Curricular
+                                        {isLoading ? 'Cargando...' : 'Cargar Malla Curricular'}
                                     </button>
                                 </div>
                             )}

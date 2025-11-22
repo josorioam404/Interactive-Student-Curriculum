@@ -23,6 +23,11 @@ spring:
         globally_quoted_identifiers: true  
     open-in-view: false
 
+# Python FastAPI backend URL
+python:
+  api:
+    url: http://localhost:8000
+
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 86400000  # 24 hours in ms

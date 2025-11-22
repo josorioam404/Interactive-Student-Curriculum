@@ -18,7 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-// This class manages the distintion between public and private endpoints
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
@@ -55,12 +54,15 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             // Public endpoints - no authentication required
-            .requestMatchers("/auth/register").permitAll() // Student self-registration
-            .requestMatchers("/auth/login").permitAll() // Login for all users
+            .requestMatchers("/auth/register").permitAll()
+            .requestMatchers("/auth/login").permitAll()
             .requestMatchers(HttpMethod.GET, "/actuator/**").permitAll()
 
+            // Authenticated user endpoints
+            .requestMatchers("/auth/update-program").authenticated()
+
             // Admin-only endpoints - requires ROLE_ADMIN
-            .requestMatchers("/admin/**").hasRole("ADMIN") // All admin operations
+            .requestMatchers("/admin/**").hasRole("ADMIN")
 
             // All other requests require authentication
             .anyRequest().authenticated());

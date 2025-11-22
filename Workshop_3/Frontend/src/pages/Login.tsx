@@ -53,7 +53,7 @@ export const Login: React.FC = () => {
 
       localStorage.setItem("user", JSON.stringify(userData));
 
-      navigate("/dashboard");
+      navigate("/select-program");
     } catch (err) {
       console.error(err);
       setError("Error conectando con el servidor.");
@@ -90,7 +90,7 @@ export const Login: React.FC = () => {
               type="email"
               id="email"
               className="form-input"
-              placeholder="tu.correo@unal.edu.co"
+              placeholder="Ej: tu.correo@unal.edu.co"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
