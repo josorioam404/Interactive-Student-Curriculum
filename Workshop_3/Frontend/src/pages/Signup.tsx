@@ -11,7 +11,6 @@ export const Signup: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'student' | 'admin'>('student');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -21,7 +20,6 @@ export const Signup: React.FC = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    role: ''
   });
 
   // Validación de formato para datos de registro de usuario
@@ -31,7 +29,6 @@ export const Signup: React.FC = () => {
       email: '',
       password: '',
       confirmPassword: '',
-      role: ''
     };
 
     let isValid = true;
@@ -65,44 +62,43 @@ export const Signup: React.FC = () => {
       isValid = false;
     }
 
-    // Solo por si acaso
-    if (!role) {
-      newErrors.role = 'Por favor selecciona un rol';
-      isValid = false;
-    }
-
     setErrors(newErrors);
     return isValid;
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       const newUser = {
-        email: email,
-        password_hash: password,
-        full_name: fullName,
-        role: role,
-        selected_program_code_sia: null
+        fullName,
+        email,
+        password,
+        selectedProgramCodeSia: null
       };
 
-      console.log('Nuevo usuario a registrar:', newUser);
-      
-      navigate('/login', { 
-        state: { message: 'Registro exitoso. Por favor inicia sesión.' }
+      const res = await fetch("http://localhost:8080/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUser)
       });
-      
+
+      if (!res.ok) {
+        setErrors({
+          ...errors,
+          email: "Error registrando usuario"
+        });
+        return;
+      }
+
+      navigate("/login", {
+        state: { message: "Registro exitoso" }
+      });
+
     } catch (err) {
-      setErrors({
-        ...errors,
-        email: 'Error al registrar el usuario. Por favor intenta nuevamente.'
-      });
-      console.error('Error en registro:', err);
+      console.error(err);
+      setErrors({ ...errors, email: "Error del servidor" });
     }
   };
 
@@ -123,7 +119,7 @@ export const Signup: React.FC = () => {
 
         <form onSubmit={handleSignup} noValidate>
           <div className="form-group">
-            <label htmlFor="fullName">Nombre completo</label>
+            <label htmlFor="fullName">Nombre de usuario</label>
             <input
               type="text"
               id="fullName"
@@ -152,23 +148,6 @@ export const Signup: React.FC = () => {
               }}
             />
             {errors.email && <span className="error-message">{errors.email}</span>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role">Rol</label>
-            <select
-              id="role"
-              className={`form-input ${errors.role ? 'input-error' : ''}`}
-              value={role}
-              onChange={(e) => {
-                setRole(e.target.value as 'student' | 'admin');
-                if (errors.role) setErrors({...errors, role: ''});
-              }}
-            >
-              <option value="student">Estudiante</option>
-              <option value="admin">Administrador</option>
-            </select>
-            {errors.role && <span className="error-message">{errors.role}</span>}
           </div>
 
           <div className="form-group">

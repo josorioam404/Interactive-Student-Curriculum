@@ -21,17 +21,42 @@ export const Login: React.FC = () => {
   const [error, setError] = useState('');
 
   // Valida las credenciales contra datos estáticos y redirige según el rol
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (email === 'folmos@unal.edu.co' && password === 'Admin12345') {
-      saveUserAndRedirect({ name: 'Frank Olmos', role: 'admin', dept: 'Ingeniería de Sistemas' });
-    } 
-    else if (email === 'estudiante@unal.edu.co' && password === 'Estudiante123') {
-      saveUserAndRedirect({ name: 'Pepito Pérez', role: 'student', dept: 'Ingeniería Industrial' });
-    } 
-    else {
-      setError('Credenciales incorrectas. Por favor verifica tus datos.');
+    setError("");
+
+    try {
+      const res = await fetch("http://localhost:8080/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!res.ok) {
+        setError("Credenciales inválidas.");
+        return;
+      }
+
+      const data = await res.json();
+
+      localStorage.setItem("accessToken", data.token);
+      localStorage.setItem("userId", data.userId);
+
+      // Construye objeto de usuario 
+      const userData = {
+        name: data.name,
+        role: data.role,
+        dept: data.dept,
+        email: data.email,
+        programCode: data.programCode
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError("Error conectando con el servidor.");
     }
   };
 
