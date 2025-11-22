@@ -15,7 +15,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/admin")
@@ -38,7 +37,7 @@ public class AdminController {
   @GetMapping("/logs")
   @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<?> getLogs() {
-    List<LogEntry> logs = logEntryRepository.findAll();
+    List<LogEntry> logs = logEntryRepository.findAllByOrderByTimestampDesc();
     return ResponseEntity.ok(logs);
   }
 
