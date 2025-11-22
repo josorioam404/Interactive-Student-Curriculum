@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
-import { Upload, Search } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Upload, Search, UserPlus, RefreshCw } from 'lucide-react';
 import { mockChangeHistory } from '../data/mockAdminData';
 import './AdminPanel.css';
 
+interface AuditLog {
+  id: number;
+  adminUserId: number;
+  actionType: string;
+  targetEntity: string;
+  targetId: string;
+  details: string;
+  timestamp: string;
+}
+
 export const AdminPanel: React.FC = () => {
-  // Gestiona el estado local para la búsqueda y la simulación de datos del formulario
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     code: 'FISG1001',
@@ -13,16 +22,109 @@ export const AdminPanel: React.FC = () => {
     prereq: ''
   });
 
-  // Actualiza el término de búsqueda basado en la entrada del usuario
+  const [newAdminData, setNewAdminData] = useState({
+    fullName: '',
+    email: '',
+    password: ''
+  });
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Accede al token para verificar que el admin esté autenticado
+  const getToken = () => {
+    const token = localStorage.getItem('accessToken') || '';
+    return token;
+  };
+
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 5000);
+  };
+
+  const fetchAuditLogs = async () => {
+    setIsLoadingLogs(true);
+    const token = getToken();
+    
+    if (!token) {
+      showMessage('error', 'No authentication token found. Please login again.');
+      setIsLoadingLogs(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/admin/logs', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setAuditLogs(data);
+      } else {
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        showMessage('error', 'Failed to fetch audit logs: ' + (errorData.message || response.statusText));
+      }
+    } catch (error) {
+      showMessage('error', 'Network error fetching logs: ' + error);
+    } finally {
+      setIsLoadingLogs(false);
+    }
+  };
+
+  // creación de nuevo ADMIN
+  const handleCreateAdmin = async () => {
+    if (!newAdminData.fullName || !newAdminData.email || !newAdminData.password) {
+      showMessage('error', 'Please fill all fields');
+      return;
+    }
+
+    const token = getToken();
+    
+    if (!token) {
+      showMessage('error', 'No authentication token found. Please login again.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/admin/create-admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(newAdminData)
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showMessage('success', `Admin created: ${data.email}`);
+        setNewAdminData({ fullName: '', email: '', password: '' });
+        // Refrescar logs después de acción 
+        fetchAuditLogs();
+      } else {
+        showMessage('error', data.message || 'Failed to create admin');
+      }
+    } catch (error) {
+      showMessage('error', 'Error creating admin: ' + error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAuditLogs();
+  }, []);
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
   };
 
-  // Determina la clase CSS para la etiqueta de acción basada en el tipo de evento
   const getActionBadgeClass = (action: string) => {
-    if (action.includes('Edición')) return 'edicion';
-    if (action.includes('Creación')) return 'creacion';
-    if (action.includes('Eliminación')) return 'eliminacion';
+    if (action.includes('Edición') || action.includes('EDIT')) return 'edicion';
+    if (action.includes('Creación') || action.includes('CREATE')) return 'creacion';
+    if (action.includes('Eliminación') || action.includes('DELETE')) return 'eliminacion';
     return 'carga'; 
   };
 
@@ -33,9 +135,68 @@ export const AdminPanel: React.FC = () => {
         Modo Administrador
       </div>
 
+      {message.text && (
+        <div className={`admin-message ${message.type}`}>
+          {message.text}
+        </div>
+      )}
+
       <div className="admin-top-grid">
         
-        {/* Renderiza la tarjeta de carga masiva de archivos */}
+        <div className="admin-card">
+          <h3 className="card-title">
+            <UserPlus size={20} style={{ display: 'inline', marginRight: '8px' }} />
+            Gestión de Administradores
+          </h3>
+          <p className="card-description">
+            Crear nuevos usuarios administradores para el sistema.
+          </p>
+
+          <div className="edit-form">
+            <div className="form-field">
+              <label>Nombre Completo</label>
+              <input 
+                type="text" 
+                className="admin-input" 
+                placeholder="Ej: Elon Musk"
+                value={newAdminData.fullName}
+                onChange={(e) => setNewAdminData({...newAdminData, fullName: e.target.value})}
+              />
+            </div>
+            
+            <div className="form-field">
+              <label>Email</label>
+              <input 
+                type="email" 
+                className="admin-input" 
+                placeholder="Ej: elonmusk@unal.edu.co"
+                value={newAdminData.email}
+                onChange={(e) => setNewAdminData({...newAdminData, email: e.target.value})}
+              />
+            </div>
+
+            <div className="form-field">
+              <label>Contraseña</label>
+              <input 
+                type="password" 
+                className="admin-input" 
+                placeholder="Ej: litlekittie"
+                value={newAdminData.password}
+                onChange={(e) => setNewAdminData({...newAdminData, password: e.target.value})}
+              />
+            </div>
+
+            <button 
+              className="btn-primary" 
+              onClick={handleCreateAdmin}
+              style={{ width: '100%' }}
+            >
+              <UserPlus size={18} style={{ display: 'inline', marginRight: '8px' }} />
+              Crear Administrador
+            </button>
+          </div>
+        </div>
+
         <div className="admin-card">
           <h3 className="card-title">Carga de Archivos Curriculares</h3>
           <p className="card-description">
@@ -55,7 +216,6 @@ export const AdminPanel: React.FC = () => {
           </button>
         </div>
 
-        {/* Renderiza la tarjeta de gestión individual de asignaturas */}
         <div className="admin-card">
           <h3 className="card-title">Gestión de Asignaturas</h3>
           <p className="card-description">
@@ -126,24 +286,51 @@ export const AdminPanel: React.FC = () => {
 
       </div>
 
-      {/* Renderiza la tabla de historial de cambios */}
       <div className="admin-card">
-        <h3 className="card-title">Historial de Cambios</h3>
-        <p className="card-description">Registro de todas las modificaciones realizadas en el sistema.</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div>
+            <h3 className="card-title">Historial de Cambios y Auditoría</h3>
+            <p className="card-description">
+              Registro de todas las modificaciones realizadas en el sistema.
+            </p>
+          </div>
+          <button 
+            className="btn-secondary"
+            onClick={fetchAuditLogs}
+            disabled={isLoadingLogs}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
+            <RefreshCw size={16} className={isLoadingLogs ? 'spinning' : ''} />
+            Actualizar
+          </button>
+        </div>
         
         <div className="history-table-wrapper">
           <table className="history-table">
             <thead>
               <tr>
                 <th>Fecha</th>
-                <th>Usuario</th>
+                <th>Admin ID</th>
                 <th>Acción</th>
                 <th>Detalles</th>
               </tr>
             </thead>
             <tbody>
-              {mockChangeHistory.map((log) => (
+              {auditLogs.map((log) => (
                 <tr key={log.id}>
+                  <td>{new Date(log.timestamp).toLocaleString('es-CO')}</td>
+                  <td>Admin #{log.adminUserId}</td>
+                  <td>
+                    <span className={`action-badge ${getActionBadgeClass(log.actionType)}`}>
+                      {log.actionType}
+                    </span>
+                  </td>
+                  <td>{log.details}</td>
+                </tr>
+              ))}
+
+              {mockChangeHistory.map((log) => (
+                <tr key={`mock-${log.id}`}>
                   <td>{log.date}</td>
                   <td>{log.user}</td>
                   <td>
@@ -154,6 +341,14 @@ export const AdminPanel: React.FC = () => {
                   <td>{log.details}</td>
                 </tr>
               ))}
+
+              {auditLogs.length === 0 && mockChangeHistory.length === 0 && (
+                <tr>
+                  <td colSpan={4} style={{ textAlign: 'center', padding: '24px' }}>
+                    No hay registros de auditoría
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

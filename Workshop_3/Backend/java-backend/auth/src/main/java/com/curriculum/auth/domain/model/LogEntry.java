@@ -7,7 +7,7 @@ import java.time.Instant;
  * Maps to existing AuditLog table.
  */
 @Entity
-@Table(name = "auditLog")
+@Table(name = "auditlog")
 public class LogEntry {
 
   @Id
