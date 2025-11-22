@@ -53,7 +53,7 @@ export const Login: React.FC = () => {
 
       localStorage.setItem("user", JSON.stringify(userData));
 
-      navigate("/dashboard");
+      navigate("/select-program");
     } catch (err) {
       console.error(err);
       setError("Error conectando con el servidor.");
