@@ -1,0 +1,58 @@
+:root {
+  /* Define variables globales para colores institucionales, indicadores de estado y constantes de diseño */
+  --unal-red: #95191C;       
+  --unal-dark: #2C2A29;      
+  --unal-gray: #666666;
+  --unal-light-gray: #f5f5f5;
+  
+  /* Colores de Estado */
+  --status-approved-bg: #e8f5e9;
+  --status-approved-border: #4CAF50;
+  --status-approved-text: #1b5e20;
+  
+  --status-pending-bg: #ffffff;
+  --status-pending-border: #e0e0e0;
+  
+  --status-planned-bg: #e3f2fd;
+  --status-planned-border: #2196F3;
+  
+  --status-error-bg: #fff3e0;
+  --status-error-border: #FF9800; 
+
+  /* Layout */
+  --header-height: 70px; 
+  --sidebar-width: 260px;
+  --border-radius: 8px;
+}
+
+/* Resetea márgenes por defecto y asegura que el documento ocupe todo el espacio disponible */
+html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Configura la tipografía global y delega el control del desplazamiento a los contenedores internos */
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--unal-light-gray);
+  color: var(--unal-dark);
+  overflow: hidden; 
+}
+
+/* Sobrescribe los estilos predeterminados del framework para forzar el diseño de pantalla completa */
+#root {
+  width: 100vw;       
+  height: 100vh;      
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important; 
+  display: flex;
+  flex-direction: column;
+  text-align: left !important; 
+}
