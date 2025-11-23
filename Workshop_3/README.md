@@ -15,6 +15,7 @@ docker compose up --build
 
 By default, the services start on the following ports:
 
-- **Backend:** 8080
+- **java-backend:** 8080
+- **python-backend:** 8000
 - **Frontend:** 5173
 - **Database:** 5432

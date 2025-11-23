@@ -14,7 +14,7 @@ services:
       - ./Database/schema:/docker-entrypoint-initdb.d
       - postgres_data:/var/lib/postgresql
 
-  backend:
+  java-backend:
     build: ./Backend/java-backend/auth
     ports:
       - "8080:8080"
@@ -25,12 +25,25 @@ services:
     depends_on:
       - db
 
+  python-backend:
+    build: ./Backend/python-backend
+    container_name: python_backend
+    ports:
+      - "8000:8000"
+    environment:
+      DB_HOST: db
+      DB_NAME: interactive_curriculum
+      DB_USER: admin
+      DB_PASSWORD: admin123
+    depends_on:
+      - db
+
   frontend:
     build: ./Frontend
     ports:
       - "5173:80"
     depends_on:
-      - backend
+      - java-backend
 
 volumes:
   postgres_data:

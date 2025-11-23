@@ -1,6 +1,6 @@
 .env
-.python-version
 jwtest.py 
+.python-version
 tests.py
 logs/
 __pycache__/
