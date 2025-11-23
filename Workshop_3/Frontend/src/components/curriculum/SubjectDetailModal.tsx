@@ -1,44 +1,95 @@
-import React from 'react';
-import { X, AlertTriangle, Clock, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, AlertTriangle, Check } from 'lucide-react';
 import type { StudyPlanItem } from '../../types';
 import './SubjectDetailModal.css';
 
-// Define las propiedades para el control y datos del modal de detalle
 interface SubjectDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: StudyPlanItem | null;
+  onProgressUpdate?: () => void;
 }
 
-export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, onClose, data }) => {
-  // Retorna nulo si el modal no debe mostrarse o no hay datos disponibles
+export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, onClose, data, onProgressUpdate }) => {
+  const [grade, setGrade] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+
   if (!isOpen || !data) return null;
 
-  const { subject_code, subject } = data;
-  
-  // Simula datos de horario estructurados para la visualización de la interfaz
-  const mockScheduleData = [
-    { day: 'Martes', time: '10:00 - 12:00', room: 'Edif. 454 - Salón 401' },
-    { day: 'Jueves', time: '10:00 - 12:00', room: 'Edif. 454 - Salón 401' }
-  ];
+  const { subject_code, subject, progress, prereq_rules } = data;
 
-  // Prepara los datos de visualización asignando valores por defecto para evitar errores
   const displayData = {
     name: subject?.name || "Asignatura Desconocida",
     credits: subject?.credits || 0,
-    theoryHours: subject?.theory_hours || 2,
-    practiceHours: subject?.practice_hours || 2,
-    labHours: subject?.lab_hours || 0,
-    professor: subject?.professor || "Dr. Profesor Asignado",
-    description: subject?.description || "Esta asignatura proporciona los fundamentos teóricos y prácticos necesarios para comprender los conceptos avanzados del área de estudio, enfocándose en metodologías de análisis y diseño."
+    weeklyHours: subject?.weekly_hours || 0,
+    description: subject?.description || "Sin descripción disponible",
+    currentStatus: progress?.status || 'Not Taken',
+    currentGrade: progress?.final_grade
   };
+
+  const getToken = () => localStorage.getItem('accessToken') || '';
+
+  const showMessage = (type: 'success' | 'error', text: string) => {
+    setMessage({ type, text });
+    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  };
+
+  const handleMarkCompleted = async () => {
+    const gradeValue = parseFloat(grade);
+    
+    if (!grade || isNaN(gradeValue)) {
+      showMessage('error', 'Por favor ingresa una nota válida');
+      return;
+    }
+
+    if (gradeValue < 0 || gradeValue > 5) {
+      showMessage('error', 'La nota debe estar entre 0.0 y 5.0');
+      return;
+    }
+
+    setIsSaving(true);
+    const token = getToken();
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/student/progress?subject_code=${subject_code}&status=Completed&final_grade=${gradeValue}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (!response.ok) throw new Error('Error al actualizar el progreso');
+
+      showMessage('success', 'Materia marcada como aprobada');
+      setGrade('');
+
+      if (onProgressUpdate) {
+        setTimeout(() => {
+          onProgressUpdate();
+          onClose();
+        }, 1500);
+      }
+    } catch (error: any) {
+      console.error('Error:', error);
+      showMessage('error', error.message || 'Error al guardar');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const prerequisites = Array.isArray(prereq_rules?.required)
+    ? prereq_rules!.required
+    : [];
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      {/* Detiene la propagación del evento clic para evitar cerrar el modal al interactuar con el contenido */}
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         
-        {/* Encabezado del modal con título y botón de cierre */}
         <div className="modal-header">
           <div>
             <h2 className="modal-title">{displayData.name}</h2>
@@ -49,10 +100,25 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
           </button>
         </div>
 
-        {/* Contenido principal con información detallada */}
+        {message.text && (
+          <div style={{
+            padding: '12px',
+            margin: '0 24px 16px',
+            borderRadius: '6px',
+            backgroundColor: message.type === 'success' ? '#d1fae5' : '#fee2e2',
+            color: message.type === 'success' ? '#065f46' : '#991b1b',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}>
+            {message.type === 'success' && <Check size={16} />}
+            {message.type === 'error' && <AlertTriangle size={16} />}
+            {message.text}
+          </div>
+        )}
+
         <div className="modal-content">
-          
-          {/* Sección de Información General */}
+
           <section className="detail-section">
             <h3 className="section-title">Información General</h3>
             <div className="info-grid">
@@ -60,88 +126,122 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
                 <span className="info-label">Créditos:</span>
                 <span className="info-value">{displayData.credits}</span>
               </div>
+
               <div className="info-item">
-                <span className="info-label">Horas teóricas:</span>
-                <span className="info-value">{displayData.theoryHours} h/sem</span>
+                <span className="info-label">Horas semanales:</span>
+                <span className="info-value">{displayData.weeklyHours} h/sem</span>
               </div>
+
               <div className="info-item">
-                <span className="info-label">Horas prácticas:</span>
-                <span className="info-value">{displayData.practiceHours} h/sem</span>
+                <span className="info-label">Estado actual:</span>
+                <span className="info-value">{displayData.currentStatus}</span>
               </div>
-              <div className="info-item">
-                <span className="info-label">Horas laboratorio:</span>
-                <span className="info-value">{displayData.labHours} h/sem</span>
-              </div>
+
+              {typeof displayData.currentGrade === "number" && (
+                <div className="info-item">
+                  <span className="info-label">Nota actual:</span>
+                  <span className="info-value">{displayData.currentGrade.toFixed(2)}</span>
+                </div>
+              )}
             </div>
           </section>
 
-          {/* Sección de Detalles Específicos (Profesor y Horario) */}
           <section className="detail-section">
-            <div style={{display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '1.5rem'}}>
-                
-                <div>
-                    <span className="info-label">Docente:</span>
-                    <div className="info-value">{displayData.professor}</div>
-                </div>
-
-                {/* Renderiza la lista de horarios y salones */}
-                <div>
-                    <span className="info-label" style={{marginBottom: '8px', display: 'block'}}>Horarios y Salones:</span>
-                    <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                        {mockScheduleData.map((slot, idx) => (
-                            <div key={idx} style={{
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                gap: '12px',
-                                backgroundColor: '#f9f9f9',
-                                padding: '8px 12px',
-                                borderRadius: '6px',
-                                border: '1px solid #eee'
-                            }}>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '6px', minWidth: '140px'}}>
-                                    <Clock size={14} className="text-gray-500"/>
-                                    <span style={{fontWeight: 600, fontSize: '0.9rem', color: 'var(--unal-dark)'}}>
-                                        {slot.day}
-                                    </span>
-                                    <span style={{fontSize: '0.85rem', color: 'var(--unal-gray)'}}>{slot.time}</span>
-                                </div>
-                                <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-                                    <MapPin size={14} className="text-gray-500"/>
-                                    <span style={{fontSize: '0.85rem', color: 'var(--unal-dark)'}}>{slot.room}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-            
             <h3 className="section-title">Descripción</h3>
             <p className="description-text">{displayData.description}</p>
           </section>
 
-          {/* Sección de Prerrequisitos (Datos simulados) */}
-          <section className="detail-section">
-            <h3 className="section-title">Prerrequisitos</h3>
-            <div className="prereq-list">
-              <div className="prereq-tag">2015702 - Cálculo Diferencial</div>
-              <div className="prereq-tag">2016377 - Programación Básica</div>
-              <div className="prereq-tag prereq-warning">
-                <AlertTriangle size={14} />
-                <span>Falta aprobar: Álgebra Lineal</span>
+          {prerequisites.length > 0 && (
+            <section className="detail-section">
+              <h3 className="section-title">Prerrequisitos</h3>
+              <div className="prereq-list">
+                {prerequisites.map((prereq: string, idx: number) => (
+                  <div key={idx} className="prereq-tag">
+                    {prereq}
+                  </div>
+                ))}
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
+          {displayData.currentStatus !== 'Completed' && (
+            <section className="detail-section">
+              <h3 className="section-title" style={{ textAlign: 'center', marginBottom: '24px' }}>
+                Marcar como Aprobada
+              </h3>
+
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                alignItems: 'center',
+                maxWidth: '420px',
+                margin: '0 auto'
+              }}>
+                <div style={{ width: '100%' }}>
+                  <label
+                    style={{
+                      display: 'block',
+                      marginBottom: '10px',
+                      fontSize: '15px',
+                      fontWeight: 600,
+                      color: 'var(--unal-dark)',
+                      textAlign: 'center'
+                    }}
+                  >
+                    Nota final (0.0 - 5.0):
+                  </label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    placeholder="Ej: 4.5"
+                    style={{
+                      width: '100%',
+                      padding: '14px',
+                      border: '2px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: '18px',
+                      textAlign: 'center',
+                      fontWeight: 600
+                    }}
+                  />
+                </div>
+
+                <button
+                  onClick={handleMarkCompleted}
+                  disabled={isSaving || !grade}
+                  style={{
+                    width: '100%',
+                    padding: '14px 24px',
+                    backgroundColor: !grade || isSaving ? '#9ca3af' : '#16a34a',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '16px',
+                    fontWeight: 700,
+                    cursor: !grade || isSaving ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {isSaving ? 'Guardando...' : '✓ Marcar Aprobada'}
+                </button>
+              </div>
+            </section>
+          )}
         </div>
 
-        {/* Pie de página con botones de acción */}
         <div className="modal-actions">
-            <button className="btn-modal btn-cancel" onClick={onClose}>Cerrar</button>
-            <button className="btn-modal btn-cancel" disabled title="Funcionalidad próximamente">Simular Inscripción</button>
-            <button className="btn-modal btn-confirm" disabled title="Funcionalidad próximamente">Marcar Aprobada</button>
+          <button className="btn-modal btn-cancel" onClick={onClose}>
+            Cerrar
+          </button>
         </div>
 
       </div>
     </div>
   );
 };
+

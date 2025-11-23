@@ -3,70 +3,156 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 110px; /* Altura fija para garantizar uniformidad en la grill*/
+  min-height: 110px;
   padding: 12px;
-  border-radius: 6px;
-  border: 1px solid transparent;
+  border-radius: 8px;
+  border: 2px solid transparent;
   background-color: white;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   position: relative;
   overflow: hidden;
 }
 
 .subject-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
   z-index: 10;
 }
 
-/* Aplica estilos visuales según el estado de la asignatura (aprobada, pendiente, inscrita, error) */
-
-/* Estado: Aprobada (Verde) */
+/* Estado: Aprobada (Verde brillante) */
 .subject-card.approved {
-  background-color: var(--status-approved-bg);
-  border-color: var(--status-approved-border);
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
 }
+
+.subject-card.approved:hover {
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+  border-color: #059669;
+}
+
 .subject-card.approved .subject-name {
-  color: var(--status-approved-text, #1b5e20);
+  color: #065f46;
+  font-weight: 700;
 }
 
-/* Estado: Pendiente (Gris) */
-.subject-card.pending {
-  background-color: var(--status-pending-bg);
-  border-color: var(--status-pending-border);
-}
-.subject-card.pending .subject-name {
-  color: var(--unal-gray);
+.subject-card.approved .subject-code {
+  color: #047857;
 }
 
-/* Estado: Planeada/Inscrita (Azul) */
-.subject-card.enrolled,
-.subject-card.planned {
-  background-color: var(--status-planned-bg);
-  border-color: var(--status-planned-border);
+.subject-card.approved .credits-badge {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #065f46;
 }
+
+/* Estado: Inscrita (Azul vibrante) */
+.subject-card.enrolled {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.subject-card.enrolled:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  border-color: #2563eb;
+}
+
 .subject-card.enrolled .subject-name {
-  color: #0d47a1;
+  color: #1e40af;
+  font-weight: 700;
 }
 
-/* Estado: Error/Alerta (Naranja) */
+.subject-card.enrolled .subject-code {
+  color: #1d4ed8;
+}
+
+.subject-card.enrolled .credits-badge {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #1e40af;
+}
+
+/* Estado: Planeada (Azul claro) */
+.subject-card.planned {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-color: #0ea5e9;
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+}
+
+.subject-card.planned:hover {
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.25);
+  border-color: #0284c7;
+}
+
+.subject-card.planned .subject-name {
+  color: #0c4a6e;
+  font-weight: 600;
+}
+
+.subject-card.planned .subject-code {
+  color: #075985;
+}
+
+.subject-card.planned .credits-badge {
+  background-color: rgba(14, 165, 233, 0.15);
+  color: #0c4a6e;
+}
+
+/* Estado: Pendiente (Azul suave en lugar de gris) */
+.subject-card.pending {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-color: #93c5fd;
+  box-shadow: 0 2px 4px rgba(147, 197, 253, 0.1);
+}
+
+.subject-card.pending:hover {
+  box-shadow: 0 6px 12px rgba(147, 197, 253, 0.2);
+  border-color: #60a5fa;
+}
+
+.subject-card.pending .subject-name {
+  color: #1e3a8a;
+  font-weight: 500;
+}
+
+.subject-card.pending .subject-code {
+  color: #3730a3;
+}
+
+.subject-card.pending .credits-badge {
+  background-color: rgba(96, 165, 250, 0.1);
+  color: #1e3a8a;
+}
+
+/* Estado: Error/Alerta (Naranja/Amarillo) */
 .subject-card.error {
-  background-color: var(--status-error-bg);
-  border-color: var(--status-error-border);
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f59e0b;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+.subject-card.error:hover {
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
+}
+
+.subject-card.error .subject-name {
+  color: #92400e;
 }
 
 /* Estructura interna de la tarjeta */
-
 .card-header-sc {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   font-size: 0.7rem;
   font-weight: 700;
-  color: #888;
   margin-bottom: 6px;
+}
+
+.subject-code {
+  color: #6b7280;
+  transition: color 0.2s;
 }
 
 .card-body-sc {
@@ -75,14 +161,15 @@
   align-items: flex-start;
 }
 
-/* Controla la tipografía del nombre y trunca el texto a 3 líneas para mantener uniformidad visual */
+/* Controla la tipografía del nombre y trunca el texto a 3 líneas */
 .subject-name {
   font-size: 0.85rem;
   font-weight: 600;
   line-height: 1.3;
   margin: 0;
+  transition: color 0.2s;
   
-  /* Propiedades para truncar texto en múltiples líneas */
+  /* Truncar texto en múltiples líneas */
   display: -webkit-box;           
   -webkit-line-clamp: 3;          
   line-clamp: 3;
@@ -99,17 +186,26 @@
   align-items: center;
 }
 
-/* Estiliza el indicador de créditos en la parte inferior */
+/* Estiliza el indicador de créditos */
 .credits-badge {
-  background-color: rgba(0,0,0,0.05);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
   font-size: 0.65rem;
-  font-weight: 600;
-  color: var(--unal-dark);
+  font-weight: 700;
+  transition: all 0.2s;
 }
 
 .warning-icon {
-  color: var(--status-error-border);
+  color: #f59e0b;
   font-size: 0.9rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }

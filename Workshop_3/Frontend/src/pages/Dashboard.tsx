@@ -1,38 +1,125 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { CurriculumGrid } from '../components/curriculum/CurriculumGrid';
 import { SubjectDetailModal } from '../components/curriculum/SubjectDetailModal';
-import { mockCurriculum } from '../data/mockCurriculum';
 import type { StudyPlanItem } from '../types';
 import './Dashboard.css';
 
+interface ProgressSummary {
+  completedSubjects: number;
+  completedCredits: number;
+  totalProgramCredits: number;
+  progressPercentage: number;
+  gpa: number;
+  papa: number;
+}
+
 export const Dashboard: React.FC = () => {
-  // Gestiona el estado local para los filtros de búsqueda y el modal de detalles
+  // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState<StudyPlanItem | null>(null);
+  
+  // Data from API
+  const [curriculum, setCurriculum] = useState<StudyPlanItem[]>([]);
+  const [progressSummary, setProgressSummary] = useState<ProgressSummary | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Simula el estado de la materia según el semestre para propósitos de visualización
-  const getSimulatedStatus = (sem: number) => {
-    if (sem < 2) return 'approved';
-    if (sem === 2) return 'enrolled';
-    if (sem === 3) return 'planned';
+  // Get token from localStorage
+  const getToken = () => localStorage.getItem('accessToken') || '';
+
+  // Fetch curriculum data
+  const fetchCurriculum = async () => {
+    const token = getToken();
+    if (!token) {
+      setError('No authentication token found');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/api/student/curriculum', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch curriculum');
+      }
+
+      const data = await response.json();
+      setCurriculum(data.curriculum || []);
+    } catch (err: any) {
+      console.error('Error fetching curriculum:', err);
+      setError(err.message || 'Error loading curriculum');
+    }
+  };
+
+  // Fetch progress summary
+  const fetchProgressSummary = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const response = await fetch('http://localhost:8000/api/student/progress-summary', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch progress summary');
+      }
+
+      const data = await response.json();
+      setProgressSummary(data);
+    } catch (err: any) {
+      console.error('Error fetching progress:', err);
+    }
+  };
+
+  // Load data on mount
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([
+        fetchCurriculum(),
+        fetchProgressSummary()
+      ]);
+      setIsLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+  // Get status based on progress data
+  const getSubjectStatus = (item: StudyPlanItem): 'approved' | 'enrolled' | 'planned' | 'pending' => {
+    const status = item.progress?.status;
+    
+    if (status === 'Completed') return 'approved';
+    if (status === 'Enrolled') return 'enrolled';
+    if (status === 'Planned') return 'planned';
     return 'pending';
   };
 
-  // Filtra la lista de asignaturas basándose en la búsqueda de texto, tipo y estado simulado
-  const filteredItems = mockCurriculum.filter(item => {
-    // Filtro por coincidencia de nombre o código
+  // Filter curriculum items
+  const filteredItems = curriculum.filter(item => {
+    // Search filter (safe access)
+    const name = item.subject?.name ?? '';
     const matchesSearch = 
-      (item.subject?.name.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-      item.subject_code.includes(searchTerm);
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.subject_code ?? '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filtro por componente curricular
-    const matchesType = filterType === 'all' || item.component === filterType;
+    // Component filter (item.component comes from StudyPlan)
+    const matchesType = filterType === 'all' || (item.component ?? '') === filterType;
 
-    // Filtro por estado académico
-    const currentStatus = getSimulatedStatus(item.suggested_semester);
+    // Status filter
+    const currentStatus = getSubjectStatus(item);
     const matchesStatus = filterStatus === 'all' || currentStatus === filterStatus;
     
     return matchesSearch && matchesType && matchesStatus;
@@ -46,44 +133,107 @@ export const Dashboard: React.FC = () => {
     setSelectedSubject(null);
   };
 
+  // Reload data after modal actions
+  const handleProgressUpdate = async () => {
+    await Promise.all([
+      fetchCurriculum(),
+      fetchProgressSummary()
+    ]);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="dashboard-container">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '400px',
+          fontSize: '18px',
+          color: 'var(--unal-gray)'
+        }}>
+          Cargando malla curricular...
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="dashboard-container">
+        <div style={{ 
+          padding: '20px',
+          backgroundColor: '#fee2e2',
+          border: '1px solid #fca5a5',
+          borderRadius: '8px',
+          color: '#991b1b'
+        }}>
+          Error: {error}
+        </div>
+      </div>
+    );
+  }
+
+  const safeProgressPercentage = progressSummary?.progressPercentage ?? 0;
+  const safeGpa = progressSummary?.gpa ?? 0;
+  const safePapa = progressSummary?.papa ?? 0;
+  const safeCompletedCredits = progressSummary?.completedCredits ?? 0;
+  const safeTotalProgramCredits = progressSummary?.totalProgramCredits ?? 180;
+
   return (
     <div className="dashboard-container">
       
-      {/* Renderiza el panel de métricas con los promedios académicos y progreso */}
+      {/* Progress Metrics */}
       <section className="metrics-panel">
         <div className="metric-card">
           <span className="metric-label">Créditos Cursados</span>
           <div className="flex items-end gap-2">
-            <span className="metric-value">20</span>
-            <span className="metric-subtext mb-1">de 180</span>
+            <span className="metric-value">
+              {safeCompletedCredits}
+            </span>
+            <span className="metric-subtext mb-1">
+              de {safeTotalProgramCredits}
+            </span>
           </div>
           <div className="progress-container">
-            <div className="progress-bar" style={{ width: '11%' }}></div>
+            <div 
+              className="progress-bar" 
+              style={{ width: `${safeProgressPercentage}%` }}
+            ></div>
           </div>
         </div>
 
         <div className="metric-card">
           <span className="metric-label">Avance Total</span>
-          <span className="metric-value">11%</span>
+          <span className="metric-value">
+            {(safeProgressPercentage).toFixed(1)}%
+          </span>
           <div className="progress-container">
-             <div className="progress-bar blue" style={{ width: '11%' }}></div>
+            <div 
+              className="progress-bar blue" 
+              style={{ width: `${safeProgressPercentage}%` }}
+            ></div>
           </div>
         </div>
 
         <div className="metric-card">
           <span className="metric-label">P.A. (Global)</span>
-          <span className="metric-value">4.25</span>
+          <span className="metric-value">
+            {safeGpa.toFixed(2)}
+          </span>
           <span className="metric-subtext">Promedio Aritmético</span>
         </div>
 
         <div className="metric-card">
           <span className="metric-label">P.A.P.A.</span>
-          <span className="metric-value">4.18</span>
+          <span className="metric-value">
+            {safePapa.toFixed(2)}
+          </span>
           <span className="metric-subtext">Promedio Ponderado</span>
         </div>
       </section>
 
-      {/* Barra de herramientas con campo de búsqueda y selectores de filtro */}
+      {/* Toolbar */}
       <section className="toolbar-container">
         <div className="search-box">
           <Search size={18} className="search-icon" />
@@ -98,7 +248,7 @@ export const Dashboard: React.FC = () => {
 
         <div className="filters-group">
           <div style={{ display: 'flex', alignItems: 'center', color: 'var(--unal-gray)' }}>
-             <Filter size={20} />
+            <Filter size={20} />
           </div>
 
           <select 
@@ -107,9 +257,10 @@ export const Dashboard: React.FC = () => {
             onChange={(e) => setFilterType(e.target.value)}
           >
             <option value="all">Todos los Tipos</option>
-            <option value="fundamentacion">Fundamentación</option>
-            <option value="disciplinar">Disciplinar</option>
-            <option value="libre">Libre Elección</option>
+            <option value="Foundational">Fundamentación</option>
+            <option value="Disciplinary">Disciplinar</option>
+            <option value="Free Elective">Libre Elección</option>
+            <option value="Leveling">Nivelación</option>
           </select>
 
           <select 
@@ -126,21 +277,24 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* Visualiza la malla curricular filtrada en un contenedor desplazable */}
+      {/* Curriculum Grid */}
       <section className="curriculum-scroll-area">
         <CurriculumGrid 
-            items={filteredItems} 
-            onSubjectClick={handleSubjectClick} 
+          items={filteredItems} 
+          onSubjectClick={handleSubjectClick}
+          getSubjectStatus={getSubjectStatus}
         />
       </section>
 
-      {/* Modal de detalle, visible solo si hay una asignatura seleccionada */}
+      {/* Subject Detail Modal */}
       <SubjectDetailModal 
         isOpen={!!selectedSubject} 
         onClose={handleCloseModal} 
-        data={selectedSubject} 
+        data={selectedSubject}
+        onProgressUpdate={handleProgressUpdate}
       />
 
     </div>
   );
 };
+

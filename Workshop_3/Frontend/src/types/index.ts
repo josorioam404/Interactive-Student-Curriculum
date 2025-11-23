@@ -8,7 +8,8 @@ export interface Subject {
   credits: number;
   weekly_hours: number;
   description?: string;
-  // Campos opcionales para el detalle extendido en el modal
+
+  // Campos opcionales
   theory_hours?: number;
   practice_hours?: number;
   lab_hours?: number;
@@ -16,7 +17,16 @@ export interface Subject {
   schedule?: string;
 }
 
-// Representa un ítem dentro de la malla curricular, vinculando una asignatura a un programa y semestre
+// Modela el registro de progreso académico de un usuario para una asignatura específica
+export interface UserProgress {
+  id?: number;
+  user_id?: number;
+  subject_code: string;
+  final_grade?: number | null;
+  status?: string; 
+}
+
+// Representa un ítem dentro de la malla curricular
 export interface StudyPlanItem {
   id: number;
   program_code_sia: string;
@@ -24,16 +34,10 @@ export interface StudyPlanItem {
   suggested_semester: number;
   component: string;
   is_obligatory: boolean;
-  prereq_rules?: string;
-  // Propiedad extendida para facilitar el acceso a los detalles de la asignatura asociada
-  subject?: Subject; 
+  prereq_rules?: {
+    required?: string[];
+  };
+  subject?: Subject;
+  progress?: UserProgress | null;
 }
 
-// Modela el registro de progreso académico de un usuario para una asignatura específica
-export interface UserProgress {
-  id: number;
-  user_id: number;
-  subject_code: string;
-  final_grade: number | null;
-  status: string; 
-}

@@ -7,23 +7,16 @@ import './CurriculumGrid.css';
 interface CurriculumGridProps {
   items: StudyPlanItem[];
   onSubjectClick?: (item: StudyPlanItem) => void;
+  getSubjectStatus: (item: StudyPlanItem) => SubjectStatus;
 }
 
-export const CurriculumGrid: React.FC<CurriculumGridProps> = ({ items, onSubjectClick }) => {
+export const CurriculumGrid: React.FC<CurriculumGridProps> = ({ items, onSubjectClick, getSubjectStatus }) => {
   // Genera un arreglo de identificadores para los 10 semestres
   const semesters = Array.from({ length: 10 }, (_, i) => i + 1);
 
   // Filtra las materias correspondientes a un semestre específico
   const getSubjectsBySemester = (sem: number) => {
     return items.filter(item => item.suggested_semester === sem);
-  };
-
-  // Determina el estado visual de la materia (Lógica temporal/Mock)
-  const getSubjectStatus = (sem: number): SubjectStatus => {
-    if (sem < 2) return 'approved';
-    if (sem === 2) return 'enrolled';
-    if (sem === 3) return 'planned';
-    return 'pending';
   };
 
   return (
@@ -45,7 +38,7 @@ export const CurriculumGrid: React.FC<CurriculumGridProps> = ({ items, onSubject
                     <SubjectCard
                       key={item.id}
                       data={item}
-                      status={getSubjectStatus(semester)}
+                      status={getSubjectStatus(item)}
                       onClick={() => onSubjectClick && onSubjectClick(item)}
                     />
                   ))
@@ -61,3 +54,4 @@ export const CurriculumGrid: React.FC<CurriculumGridProps> = ({ items, onSubject
     </div>
   );
 };
+

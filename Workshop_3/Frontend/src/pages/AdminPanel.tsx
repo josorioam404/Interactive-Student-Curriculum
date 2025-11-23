@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Search, UserPlus, RefreshCw } from 'lucide-react';
-import { mockChangeHistory } from '../data/mockAdminData';
 import './AdminPanel.css';
 
 interface AuditLog {
@@ -458,20 +457,7 @@ export const AdminPanel: React.FC = () => {
                 </tr>
               ))}
 
-              {mockChangeHistory.map((log) => (
-                <tr key={`mock-${log.id}`}>
-                  <td>{log.date}</td>
-                  <td>{log.user}</td>
-                  <td>
-                    <span className={`action-badge ${getActionBadgeClass(log.action)}`}>
-                      {log.action}
-                    </span>
-                  </td>
-                  <td>{log.details}</td>
-                </tr>
-              ))}
-
-              {auditLogs.length === 0 && mockChangeHistory.length === 0 && (
+              {auditLogs.length === 0 && (
                 <tr>
                   <td colSpan={4} style={{ textAlign: 'center', padding: '24px' }}>
                     No hay registros de auditoría
