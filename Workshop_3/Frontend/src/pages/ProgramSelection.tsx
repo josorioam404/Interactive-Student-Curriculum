@@ -57,7 +57,7 @@ export const ProgramSelection: React.FC = () => {
                 throw new Error(errorData.message || 'Error al actualizar el programa');
             }
 
-            const data = await response.json();
+            await response.json();
 
             // Update localStorage with new program code
             const userStr = localStorage.getItem('user');

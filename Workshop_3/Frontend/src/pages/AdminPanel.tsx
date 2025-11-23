@@ -106,7 +106,7 @@ export const AdminPanel: React.FC = () => {
       const data = await response.json();
 
       if (response.ok) {
-        showMessage('Éxito', `Admin creado: ${data.email}`);
+        showMessage('success', `Admin creado: ${data.email}`);
         setNewAdminData({ fullName: '', email: '', password: '' });
         // Refrescar logs después de acción 
         fetchAuditLogs();
