@@ -1,0 +1,9 @@
+.env
+jwtest.py 
+tests.py
+logs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
