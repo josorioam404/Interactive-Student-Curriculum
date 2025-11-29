@@ -106,7 +106,8 @@ INSERT INTO Subject (subject_code, name, credits) VALUES
 ('2016366', 'Estadística Descriptiva y Exploratoria', 4),
 ('2016379', 'Inferencia Estadística', 4),
 ('2016360', 'Análisis de Regresión', 4),
-('2015155', 'Introducción al Análisis Real', 4);
+('2015155', 'Introducción al Análisis Real', 4)
+ON CONFLICT (subject_code) DO NOTHING;
 
 WITH InsertedGroups AS (
 INSERT INTO CurriculumGroup (program_code_sia, component, group_name, required_credits_total, required_credits_obligatory) VALUES
