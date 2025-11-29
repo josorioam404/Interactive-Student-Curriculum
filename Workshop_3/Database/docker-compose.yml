@@ -1,0 +1,19 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: interactive_curriculum_db
+    environment:
+      POSTGRES_DB: interactive_curriculum
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./schema:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql
+    
+volumes:
+  postgres_data:
+  pgadmin_data:

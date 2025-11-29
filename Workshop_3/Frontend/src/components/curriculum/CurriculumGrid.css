@@ -1,0 +1,52 @@
+/* Contenedor principal: habilita el desplazamiento horizontal para la navegación de semestres */
+.grid-container {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  /* Personalización del scrollbar para consistencia visual */
+  scrollbar-width: thin;
+  scrollbar-color: var(--unal-gray) #f1f1f1;
+}
+
+/* Riel flexible que contiene todas las columnas de semestres */
+.grid-track {
+  display: flex;
+  gap: 20px;
+  min-width: max-content; /* Asegura que el contenedor se expanda sin comprimir columnas */
+  padding: 0 5px;
+}
+
+/* Definición de la columna individual por semestre */
+.semester-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 240px; /* Ancho fijo para mantener uniformidad */
+  min-width: 240px;
+}
+
+/* Estilos para el encabezado de columna */
+.semester-header {
+  text-align: center;
+  font-weight: 700;
+  color: var(--unal-dark);
+  border-bottom: 3px solid var(--unal-red);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  background-color: var(--unal-light-gray);
+  position: sticky; /* Mantiene el encabezado visible durante scroll vertical */
+  top: 0;
+  z-index: 10;
+}
+
+/* Placeholder visual para semestres vacíos */
+.empty-semester {
+  height: 100px;
+  border: 2px dashed #e0e0e0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #bdbdbd;
+  font-size: 0.8rem;
+}
