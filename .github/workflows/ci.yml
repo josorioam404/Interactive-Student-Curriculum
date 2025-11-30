@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: ["main"]
   workflow_dispatch:
+
+  permissions:
+    actions: write  # Needed to trigger other workflows
+
 jobs:
   tests:
     runs-on: ubuntu-latest
