@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { CurriculumGrid } from '../components/curriculum/CurriculumGrid';
 import { SubjectDetailModal } from '../components/curriculum/SubjectDetailModal';
+import { mockCurriculum } from '../data/mockCurriculum'; 
 import type { StudyPlanItem } from '../types';
 import './Dashboard.css';
-import { mockCurriculum } from '../data/mockCurriculum'; // Importamos datos simulados
 
 interface ProgressSummary {
   completedSubjects: number;
@@ -24,7 +24,7 @@ export const Dashboard: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState<StudyPlanItem | null>(null);
   
-  // Datos de la API
+  // Estado de datos
   const [curriculum, setCurriculum] = useState<StudyPlanItem[]>([]);
   const [progressSummary, setProgressSummary] = useState<ProgressSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +32,7 @@ export const Dashboard: React.FC = () => {
 
   const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;
 
-  // Verifica si el usuario actual es un invitado
+  // Verificación de rol
   const isGuestUser = () => {
     const userStr = localStorage.getItem('user');
     if (!userStr) return false;
@@ -42,9 +42,10 @@ export const Dashboard: React.FC = () => {
 
   const getToken = () => localStorage.getItem('accessToken') || '';
 
+  // Carga de la malla curricular
   const fetchCurriculum = async () => {
-    // Si es invitado, cargamos datos simulados locales
     if (isGuestUser()) {
+      // Modo invitado: usa datos locales
       setCurriculum(mockCurriculum);
       return;
     }
@@ -76,16 +77,37 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  // Carga del resumen de progreso
   const fetchProgressSummary = async () => {
-    // Si es invitado, generamos un resumen simulado en cero o con datos de ejemplo
     if (isGuestUser()) {
+      // Calcular el resumen basado en el estado actual del curriculum
+      const completed = curriculum.filter(item => item.progress?.status === 'Completed');
+      const completedCredits = completed.reduce((sum, item) => sum + (item.subject?.credits || 0), 0);
+      const totalCredits = 160; // Ajusta según tu programa
+      
+      // Calcular GPA y PAPA
+      const gradesWithCredits = completed
+        .filter(item => typeof item.progress?.final_grade === 'number')
+        .map(item => ({
+          grade: item.progress!.final_grade!,
+          credits: item.subject?.credits || 0
+        }));
+      
+      const totalGradePoints = gradesWithCredits.reduce((sum, g) => sum + (g.grade * g.credits), 0);
+      const totalCreditsWithGrades = gradesWithCredits.reduce((sum, g) => sum + g.credits, 0);
+      
+      const papa = totalCreditsWithGrades > 0 ? totalGradePoints / totalCreditsWithGrades : 0;
+      const gpa = gradesWithCredits.length > 0 
+        ? gradesWithCredits.reduce((sum, g) => sum + g.grade, 0) / gradesWithCredits.length 
+        : 0;
+
       setProgressSummary({
-        completedSubjects: 0,
-        completedCredits: 0,
-        totalProgramCredits: 160,
-        progressPercentage: 0,
-        gpa: 0,
-        papa: 0
+        completedSubjects: completed.length,
+        completedCredits: completedCredits,
+        totalProgramCredits: totalCredits,
+        progressPercentage: (completedCredits / totalCredits) * 100,
+        gpa: gpa,
+        papa: papa
       });
       return;
     }
@@ -112,19 +134,25 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  // Efecto de carga inicial
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      await Promise.all([
-        fetchCurriculum(),
-        fetchProgressSummary()
-      ]);
+      await fetchCurriculum();
       setIsLoading(false);
     };
 
     loadData();
   }, []);
 
+  // Recalcular el resumen cuando cambia el curriculum
+  useEffect(() => {
+    if (curriculum.length > 0) {
+      fetchProgressSummary();
+    }
+  }, [curriculum]);
+
+  // Helpers de estado y filtros
   const getSubjectStatus = (item: StudyPlanItem): 'approved' | 'enrolled' | 'planned' | 'pending' => {
     const status = item.progress?.status;
     
@@ -157,11 +185,11 @@ export const Dashboard: React.FC = () => {
   };
 
   const handleProgressUpdate = async () => {
-    // Si es invitado, no refrescamos desde el servidor, solo cerramos el modal
-    // (Podrías implementar lógica para actualizar el estado local temporalmente si quisieras)
     if (isGuestUser()) {
-        console.warn("Modo invitado: El progreso no se guarda permanentemente.");
-        return;
+      // En modo invitado, forzar la actualización del curriculum
+      // Crear una copia nueva del array para forzar re-render
+      setCurriculum([...curriculum]);
+      return;
     }
 
     await Promise.all([
@@ -316,6 +344,7 @@ export const Dashboard: React.FC = () => {
         isOpen={!!selectedSubject} 
         onClose={handleCloseModal} 
         data={selectedSubject}
+        allSubjects={curriculum}
         onProgressUpdate={handleProgressUpdate}
       />
 

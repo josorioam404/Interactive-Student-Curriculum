@@ -1,4 +1,4 @@
-//SubjectDetailsModal.tsx
+//SubjectDetailModal.tsx
 
 import React, { useState } from 'react';
 import { X, AlertTriangle, Check } from 'lucide-react';
@@ -9,10 +9,17 @@ interface SubjectDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   data: StudyPlanItem | null;
+  allSubjects: StudyPlanItem[]; // Recibimos todas las materias para buscar los prerrequisitos
   onProgressUpdate?: () => void;
 }
 
-export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, onClose, data, onProgressUpdate }) => {
+export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  data, 
+  allSubjects, 
+  onProgressUpdate 
+}) => {
   const [grade, setGrade] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -34,7 +41,6 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
 
   const getToken = () => localStorage.getItem('accessToken') || '';
 
-  // Helper para verificar rol
   const isGuestUser = () => {
     const userStr = localStorage.getItem('user');
     if (!userStr) return false;
@@ -44,7 +50,33 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
 
   const showMessageFn = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+    setTimeout(() => setMessage({ type: '', text: '' }), 4000);
+  };
+
+  // --- LÓGICA DE VALIDACIÓN DE PRERREQUISITOS ---
+  const validatePrerequisites = (): { valid: boolean; missingNames: string[] } => {
+    // Obtenemos los códigos requeridos (asegurando que sea un array)
+    const requiredCodes = prereq_rules?.required || [];
+    const missingNames: string[] = [];
+
+    requiredCodes.forEach((reqCode: string) => {
+      // Buscamos la materia prerrequisito en la lista completa
+      const reqSubject = allSubjects.find(s => s.subject_code === reqCode);
+      
+      // Verificamos si existe y si su estado es 'Completed'
+      // El backend debe entregar el estado 'Completed' cuando una materia se ha aprobado
+      const isCompleted = reqSubject?.progress?.status === 'Completed';
+
+      if (!isCompleted) {
+        // Guardamos el nombre para mostrárselo al usuario
+        missingNames.push(reqSubject?.subject?.name || `Código: ${reqCode}`);
+      }
+    });
+
+    return { 
+      valid: missingNames.length === 0, 
+      missingNames 
+    };
   };
 
   const handleMarkCompleted = async () => {
@@ -60,21 +92,33 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
       return;
     }
 
+    // 1. VALIDAMOS PRERREQUISITOS ANTES DE CUALQUIER ACCIÓN
+    const { valid, missingNames } = validatePrerequisites();
+    
+    if (!valid) {
+      showMessageFn('error', `No puedes aprobar esta materia. Debes aprobar primero: ${missingNames.join(', ')}.`);
+      return;
+    }
+
     setIsSaving(true);
 
-    // LÓGICA PARA INVITADOS (Simulación)
+    // LÓGICA PARA INVITADOS (Simulación Local)
     if (isGuestUser()) {
       setTimeout(() => {
-        // Simulamos éxito visualmente
-        showMessageFn('success', 'Materia aprobada (Modo Invitado: No se guarda en BD)');
+        // Simulamos la aprobación actualizando el objeto localmente para que la UI responda
+        if (!data.progress) {
+            data.progress = { subject_code, status: 'Completed', final_grade: gradeValue };
+        } else {
+            data.progress.status = 'Completed';
+            data.progress.final_grade = gradeValue;
+        }
+
+        showMessageFn('success', 'Materia aprobada (Modo Invitado)');
         setGrade('');
         setIsSaving(false);
         
-        // Cerramos el modal después de un momento
         if (onProgressUpdate) {
           setTimeout(() => {
-            // Nota: En modo invitado, el Dashboard no se recargará con el nuevo estado 
-            // porque usamos datos estáticos (mockCurriculum), pero la UX no se rompe.
             onClose(); 
           }, 1500);
         }
@@ -82,7 +126,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
       return;
     }
 
-    // LÓGICA REAL (Usuarios autenticados)
+    // LÓGICA REAL (Backend)
     const token = getToken();
 
     try {
@@ -145,11 +189,12 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
             color: message.type === 'success' ? '#065f46' : '#991b1b',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: '8px',
+            fontSize: '0.9rem'
           }}>
-            {message.type === 'success' && <Check size={16} />}
-            {message.type === 'error' && <AlertTriangle size={16} />}
-            {message.text}
+            {message.type === 'success' && <Check size={16} style={{flexShrink: 0}} />}
+            {message.type === 'error' && <AlertTriangle size={16} style={{flexShrink: 0}} />}
+            <span>{message.text}</span>
           </div>
         )}
 
@@ -200,6 +245,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
             </section>
           )}
 
+          {/* Solo mostramos el formulario si la materia NO está completada */}
           {displayData.currentStatus !== 'Completed' && (
             <section className="detail-section">
               <h3 className="section-title" style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -265,6 +311,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
                 >
                   {isSaving ? 'Guardando...' : '✓ Marcar Aprobada'}
                 </button>
+                
                 {isGuestUser() && (
                   <small style={{ color: 'var(--color-unal-gray)', marginTop: '-8px' }}>
                     Modo invitado: Los cambios no se guardarán permanentemente.
