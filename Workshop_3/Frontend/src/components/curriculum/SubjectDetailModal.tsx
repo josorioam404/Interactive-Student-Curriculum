@@ -15,6 +15,8 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
+  const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;  
+
   if (!isOpen || !data) return null;
 
   const { subject_code, subject, progress, prereq_rules } = data;
@@ -53,7 +55,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/student/progress?subject_code=${subject_code}&status=Completed&final_grade=${gradeValue}`,
+        `${PYTHON_API_URL}/api/student/progress?subject_code=${subject_code}&status=Completed&final_grade=${gradeValue}`,
         {
           method: 'POST',
           headers: {
