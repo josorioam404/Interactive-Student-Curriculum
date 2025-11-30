@@ -60,10 +60,10 @@ jobs:
             
             # Check if all containers are running
             if [ $(docker compose ps -q | wc -l) -eq 4 ]; then
-              echo "✅ All 4 containers are running"
+              echo "All 4 containers are running"
               docker compose ps
             else
-              echo "❌ Deployment verification failed"
+              echo "Deployment verification failed"
               docker compose ps
               exit 1
             fi

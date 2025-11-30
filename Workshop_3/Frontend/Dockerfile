@@ -12,8 +12,6 @@ RUN npm ci
 # Copy all frontend files and build
 COPY . .
 
-COPY .env.production .env.production
-
 RUN if [ "$BUILD_MODE" = "development" ]; then \
       cp .env.development .env.production; \
     fi

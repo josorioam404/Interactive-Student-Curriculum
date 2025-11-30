@@ -94,10 +94,16 @@ jobs:
       #   Frontend Image
       - name: Build & Push Frontend
         uses: docker/build-push-action@v5
+        env:
+          VITE_PYTHON_API_URL: "http://54.89.37.108:8000"
+          VITE_JAVA_API_URL: "http://54.89.37.108:8080"
         with:
           context: ./Workshop_3/Frontend
           file: ./Workshop_3/Frontend/Dockerfile
-          push: true
+          push: true          
+          no-cache: true                    
+          provenance: false                
+          sbom: false
           tags: |
             josorioam404/isc-frontend:latest
             ghcr.io/josorioam404/isc-frontend:latest
