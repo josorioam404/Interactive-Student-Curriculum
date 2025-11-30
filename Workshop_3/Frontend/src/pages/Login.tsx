@@ -1,10 +1,11 @@
+//Login.tsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react'; 
 import logoUnal from '../assets/logo_unal.png';
 import './Login.css';
 
-// Define la estructura de datos para la sesión del usuario
 interface UserSessionData {
   name: string;
   role: string;
@@ -14,7 +15,6 @@ interface UserSessionData {
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   
-  // Gestiona el estado local para las credenciales, visibilidad de contraseña y errores
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false); 
@@ -22,7 +22,6 @@ export const Login: React.FC = () => {
 
   const JAVA_API_URL = import.meta.env.VITE_JAVA_API_URL;
 
-  // Valida las credenciales contra datos estáticos y redirige según el rol
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -44,7 +43,6 @@ export const Login: React.FC = () => {
       localStorage.setItem("accessToken", data.token);
       localStorage.setItem("userId", data.userId);
 
-      // Construye objeto de usuario 
       const userData = {
         name: data.name,
         role: data.role,
@@ -62,15 +60,22 @@ export const Login: React.FC = () => {
     }
   };
 
-  // Habilita el acceso limitado para usuarios invitados
   const handleGuestAccess = () => {
-    saveUserAndRedirect({ name: 'Invitado', role: 'guest', dept: 'Visitante' });
-  };
+    // Limpia cualquier rastro de sesiones anteriores autenticadas
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userId');
 
-  // Persiste la sesión del usuario en el almacenamiento local y navega al dashboard
-  const saveUserAndRedirect = (userData: UserSessionData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    navigate('/dashboard');
+    // Crea la sesión de invitado
+    const guestData: UserSessionData = { 
+      name: 'Invitado', 
+      role: 'guest', 
+      dept: 'Visitante' 
+    };
+    
+    localStorage.setItem('user', JSON.stringify(guestData));
+    
+    // Redirige a selección de programa para simular la experiencia completa
+    navigate('/select-program');
   };
 
   return (
@@ -102,7 +107,6 @@ export const Login: React.FC = () => {
           <div className="form-group">
             <label htmlFor="password">Contraseña</label>
             <div className="password-wrapper">
-              {/* Alterna el tipo de input entre text y password según la visibilidad */}
               <input
                 type={showPassword ? "text" : "password"} 
                 id="password"

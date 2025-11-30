@@ -1,9 +1,12 @@
+//Dashboard.tsx
+
 import React, { useState, useEffect } from 'react';
 import { Search, Filter } from 'lucide-react';
 import { CurriculumGrid } from '../components/curriculum/CurriculumGrid';
 import { SubjectDetailModal } from '../components/curriculum/SubjectDetailModal';
 import type { StudyPlanItem } from '../types';
 import './Dashboard.css';
+import { mockCurriculum } from '../data/mockCurriculum'; // Importamos datos simulados
 
 interface ProgressSummary {
   completedSubjects: number;
@@ -15,13 +18,13 @@ interface ProgressSummary {
 }
 
 export const Dashboard: React.FC = () => {
-  // State management
+  // Gestión del estado
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedSubject, setSelectedSubject] = useState<StudyPlanItem | null>(null);
   
-  // Data from API
+  // Datos de la API
   const [curriculum, setCurriculum] = useState<StudyPlanItem[]>([]);
   const [progressSummary, setProgressSummary] = useState<ProgressSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,19 +32,26 @@ export const Dashboard: React.FC = () => {
 
   const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;
 
-  console.log('new print');
+  // Verifica si el usuario actual es un invitado
+  const isGuestUser = () => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return false;
+    const user = JSON.parse(userStr);
+    return user.role === 'guest';
+  };
 
-  console.log('Environment:', import.meta.env.MODE);
-  console.log('Java API:', import.meta.env.VITE_JAVA_API_URL);
-  console.log('Python API:', import.meta.env.VITE_PYTHON_API_URL);
-  // Get token from localStorage
   const getToken = () => localStorage.getItem('accessToken') || '';
 
-  // Fetch curriculum data
   const fetchCurriculum = async () => {
+    // Si es invitado, cargamos datos simulados locales
+    if (isGuestUser()) {
+      setCurriculum(mockCurriculum);
+      return;
+    }
+
     const token = getToken();
     if (!token) {
-      setError('No authentication token found');
+      setError('No se encontró token de autenticación');
       setIsLoading(false);
       return;
     }
@@ -55,19 +65,31 @@ export const Dashboard: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch curriculum');
+        throw new Error('Fallo al obtener la malla curricular');
       }
 
       const data = await response.json();
       setCurriculum(data.curriculum || []);
     } catch (err: any) {
       console.error('Error fetching curriculum:', err);
-      setError(err.message || 'Error loading curriculum');
+      setError(err.message || 'Error cargando la malla');
     }
   };
 
-  // Fetch progress summary
   const fetchProgressSummary = async () => {
+    // Si es invitado, generamos un resumen simulado en cero o con datos de ejemplo
+    if (isGuestUser()) {
+      setProgressSummary({
+        completedSubjects: 0,
+        completedCredits: 0,
+        totalProgramCredits: 160,
+        progressPercentage: 0,
+        gpa: 0,
+        papa: 0
+      });
+      return;
+    }
+
     const token = getToken();
     if (!token) return;
 
@@ -80,7 +102,7 @@ export const Dashboard: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch progress summary');
+        throw new Error('Fallo al obtener resumen de progreso');
       }
 
       const data = await response.json();
@@ -90,7 +112,6 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  // Load data on mount
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -104,7 +125,6 @@ export const Dashboard: React.FC = () => {
     loadData();
   }, []);
 
-  // Get status based on progress data
   const getSubjectStatus = (item: StudyPlanItem): 'approved' | 'enrolled' | 'planned' | 'pending' => {
     const status = item.progress?.status;
     
@@ -114,18 +134,14 @@ export const Dashboard: React.FC = () => {
     return 'pending';
   };
 
-  // Filter curriculum items
   const filteredItems = curriculum.filter(item => {
-    // Search filter (safe access)
     const name = item.subject?.name ?? '';
     const matchesSearch = 
       name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (item.subject_code ?? '').toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Component filter (item.component comes from StudyPlan)
     const matchesType = filterType === 'all' || (item.component ?? '') === filterType;
 
-    // Status filter
     const currentStatus = getSubjectStatus(item);
     const matchesStatus = filterStatus === 'all' || currentStatus === filterStatus;
     
@@ -140,8 +156,14 @@ export const Dashboard: React.FC = () => {
     setSelectedSubject(null);
   };
 
-  // Reload data after modal actions
   const handleProgressUpdate = async () => {
+    // Si es invitado, no refrescamos desde el servidor, solo cerramos el modal
+    // (Podrías implementar lógica para actualizar el estado local temporalmente si quisieras)
+    if (isGuestUser()) {
+        console.warn("Modo invitado: El progreso no se guarda permanentemente.");
+        return;
+    }
+
     await Promise.all([
       fetchCurriculum(),
       fetchProgressSummary()
@@ -157,7 +179,7 @@ export const Dashboard: React.FC = () => {
           alignItems: 'center', 
           height: '400px',
           fontSize: '18px',
-          color: 'var(--unal-gray)'
+          color: 'var(--color-unal-gray)'
         }}>
           Cargando malla curricular...
         </div>
@@ -190,7 +212,6 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="dashboard-container">
       
-      {/* Progress Metrics */}
       <section className="metrics-panel">
         <div className="metric-card">
           <span className="metric-label">Créditos Cursados</span>
@@ -240,7 +261,6 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* Toolbar */}
       <section className="toolbar-container">
         <div className="search-box">
           <Search size={18} className="search-icon" />
@@ -254,7 +274,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="filters-group">
-          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--unal-gray)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-unal-gray)' }}>
             <Filter size={20} />
           </div>
 
@@ -284,7 +304,6 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* Curriculum Grid */}
       <section className="curriculum-scroll-area">
         <CurriculumGrid 
           items={filteredItems} 
@@ -293,7 +312,6 @@ export const Dashboard: React.FC = () => {
         />
       </section>
 
-      {/* Subject Detail Modal */}
       <SubjectDetailModal 
         isOpen={!!selectedSubject} 
         onClose={handleCloseModal} 

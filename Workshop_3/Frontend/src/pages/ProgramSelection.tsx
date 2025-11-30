@@ -1,10 +1,10 @@
+//ProgramSelection.tsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { engineeringPrograms } from '../data/engineeringPrograms';
 import './ProgramSelection.css';
 
 export const ProgramSelection: React.FC = () => {
-    // Gestiona el estado del ID del programa seleccionado para controlar la expansión de tarjetas
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -12,65 +12,68 @@ export const ProgramSelection: React.FC = () => {
 
     const JAVA_API_URL = import.meta.env.VITE_JAVA_API_URL;
 
-    // Alterna el estado de selección de una tarjeta al interactuar con ella
     const handleProgramClick = (id: string) => {
         setSelectedId(prevId => prevId === id ? null : id);
     };
 
-    // Detiene la propagación del evento para evitar cerrar la tarjeta y navega al dashboard
     const handleLoadCurriculum = async (e: React.MouseEvent, programId: string, programName: string) => {
         e.stopPropagation();
         setIsLoading(true);
         setError('');
 
         try {
-            // Get token from localStorage
-            const token = localStorage.getItem('accessToken');
-            
-            if (!token) {
-                setError('No se encontró un token de autorización. Por favor inicie sesión de nuevo.');
-                setIsLoading(false);
-                setTimeout(() => navigate('/login'), 2000);
+            // Recupera el usuario para verificar el rol
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                navigate('/login');
                 return;
             }
+            
+            const user = JSON.parse(userStr);
+            const isGuest = user.role === 'guest';
 
-            // Find the selected program to get its code
             const selectedProgram = engineeringPrograms.find(p => p.id === programId);
             if (!selectedProgram) {
-                setError('Program not found');
+                setError('Programa no encontrado');
                 setIsLoading(false);
                 return;
             }
 
-            // Send program update to backend
-            const response = await fetch(`${JAVA_API_URL}/auth/update-program`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    programCode: selectedProgram.code
-                })
-            });
+            // Si NO es invitado, realiza la petición al backend para persistir el cambio
+            if (!isGuest) {
+                const token = localStorage.getItem('accessToken');
+                
+                if (!token) {
+                    setError('Sesión expirada. Por favor inicie sesión de nuevo.');
+                    setTimeout(() => navigate('/login'), 2000);
+                    return;
+                }
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
-                throw new Error(errorData.message || 'Error al actualizar el programa');
+                const response = await fetch(`${JAVA_API_URL}/auth/update-program`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        programCode: selectedProgram.code
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
+                    throw new Error(errorData.message || 'Error al actualizar el programa');
+                }
+                
+                // Consume la respuesta para completar el flujo
+                await response.json();
             }
 
-            await response.json();
+            // Actualiza localStorage (tanto para Guest como para User autenticado)
+            user.programCode = selectedProgram.code;
+            user.programName = programName;
+            localStorage.setItem('user', JSON.stringify(user));
 
-            // Update localStorage with new program code
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                user.programCode = selectedProgram.code;
-                user.programName = programName;
-                localStorage.setItem('user', JSON.stringify(user));
-            }
-
-            // Navigate to dashboard
             navigate('/dashboard');
 
         } catch (err: any) {
@@ -99,7 +102,6 @@ export const ProgramSelection: React.FC = () => {
             )}
 
             <div className="programs-grid">
-                {/* Itera sobre la lista de programas para renderizar las tarjetas individuales */}
                 {engineeringPrograms.map((program) => {
                     const isSelected = selectedId === program.id;
                     return (
@@ -108,20 +110,18 @@ export const ProgramSelection: React.FC = () => {
                             className={`program-card ${isSelected ? 'selected' : ''}`}
                             onClick={() => handleProgramClick(program.id)}
                         >
-                            {/* Renderiza el contenido principal visible de la tarjeta */}
                             <div className="card-header-content">
                                 <h3 className="program-name">{program.name}</h3>
                                 <p className="program-desc">{program.description}</p>
                             </div>
 
-                            {/* Renderiza condicionalmente la sección expandida con el resumen y botón de acción */}
                             {isSelected && (
                                 <div className="card-expanded-content">
                                     <div className="divider-line"></div>
                                     <div className="summary-block">
                                         <h4>Resumen del Programa</h4>
                                         <p>{program.summary}</p>
-                                        <small>* Datos preliminares (Dummy Data)</small>
+                                        <small>* Visualización de Malla Curricular</small>
                                     </div>
                                     <button 
                                         className="load-curriculum-btn" 

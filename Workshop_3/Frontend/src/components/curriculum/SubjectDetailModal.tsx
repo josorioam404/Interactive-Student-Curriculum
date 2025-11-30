@@ -1,3 +1,5 @@
+//SubjectDetailsModal.tsx
+
 import React, { useState } from 'react';
 import { X, AlertTriangle, Check } from 'lucide-react';
 import type { StudyPlanItem } from '../../types';
@@ -32,7 +34,15 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
 
   const getToken = () => localStorage.getItem('accessToken') || '';
 
-  const showMessage = (type: 'success' | 'error', text: string) => {
+  // Helper para verificar rol
+  const isGuestUser = () => {
+    const userStr = localStorage.getItem('user');
+    if (!userStr) return false;
+    const user = JSON.parse(userStr);
+    return user.role === 'guest';
+  };
+
+  const showMessageFn = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage({ type: '', text: '' }), 3000);
   };
@@ -41,16 +51,38 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
     const gradeValue = parseFloat(grade);
     
     if (!grade || isNaN(gradeValue)) {
-      showMessage('error', 'Por favor ingresa una nota válida');
+      showMessageFn('error', 'Por favor ingresa una nota válida');
       return;
     }
 
     if (gradeValue < 0 || gradeValue > 5) {
-      showMessage('error', 'La nota debe estar entre 0.0 y 5.0');
+      showMessageFn('error', 'La nota debe estar entre 0.0 y 5.0');
       return;
     }
 
     setIsSaving(true);
+
+    // LÓGICA PARA INVITADOS (Simulación)
+    if (isGuestUser()) {
+      setTimeout(() => {
+        // Simulamos éxito visualmente
+        showMessageFn('success', 'Materia aprobada (Modo Invitado: No se guarda en BD)');
+        setGrade('');
+        setIsSaving(false);
+        
+        // Cerramos el modal después de un momento
+        if (onProgressUpdate) {
+          setTimeout(() => {
+            // Nota: En modo invitado, el Dashboard no se recargará con el nuevo estado 
+            // porque usamos datos estáticos (mockCurriculum), pero la UX no se rompe.
+            onClose(); 
+          }, 1500);
+        }
+      }, 1000);
+      return;
+    }
+
+    // LÓGICA REAL (Usuarios autenticados)
     const token = getToken();
 
     try {
@@ -67,7 +99,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
 
       if (!response.ok) throw new Error('Error al actualizar el progreso');
 
-      showMessage('success', 'Materia marcada como aprobada');
+      showMessageFn('success', 'Materia marcada como aprobada');
       setGrade('');
 
       if (onProgressUpdate) {
@@ -78,9 +110,11 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
       }
     } catch (error: any) {
       console.error('Error:', error);
-      showMessage('error', error.message || 'Error al guardar');
+      showMessageFn('error', error.message || 'Error al guardar');
     } finally {
-      setIsSaving(false);
+      if (!isGuestUser()) {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -187,7 +221,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
                       marginBottom: '10px',
                       fontSize: '15px',
                       fontWeight: 600,
-                      color: 'var(--unal-dark)',
+                      color: 'var(--color-unal-dark)',
                       textAlign: 'center'
                     }}
                   >
@@ -231,6 +265,11 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({ isOpen, 
                 >
                   {isSaving ? 'Guardando...' : '✓ Marcar Aprobada'}
                 </button>
+                {isGuestUser() && (
+                  <small style={{ color: 'var(--color-unal-gray)', marginTop: '-8px' }}>
+                    Modo invitado: Los cambios no se guardarán permanentemente.
+                  </small>
+                )}
               </div>
             </section>
           )}
