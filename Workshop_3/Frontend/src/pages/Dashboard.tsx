@@ -29,6 +29,9 @@ export const Dashboard: React.FC = () => {
 
   const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;
 
+  console.log('Environment:', import.meta.env.MODE);
+  console.log('Java API:', import.meta.env.VITE_JAVA_API_URL);
+  console.log('Python API:', import.meta.env.VITE_PYTHON_API_URL);
   // Get token from localStorage
   const getToken = () => localStorage.getItem('accessToken') || '';
 
