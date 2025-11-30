@@ -12,11 +12,7 @@ RUN npm ci
 # Copy all frontend files and build
 COPY . .
 
-# Build based on mode
-RUN if [ "$BUILD_MODE" = "development" ]; then \
-      echo "Building for development..."; \
-      cp .env.development .env.production; \
-    fi && npm run build
+RUN npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
