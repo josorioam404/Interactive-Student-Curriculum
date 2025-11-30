@@ -2,24 +2,20 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Accept build arguments
-ARG VITE_PYTHON_API_URL=http://localhost:8000
-ARG VITE_JAVA_API_URL=http://localhost:8080
+# Accept build argument
+ARG BUILD_MODE=production
 
 # Install dependencies
 COPY package*.json ./
 RUN npm ci  
 
-# Copy all frontend files
+# Copy all frontend files and build
 COPY . .
 
-# Create .env.production file with the build args
-RUN echo "VITE_PYTHON_API_URL=${VITE_PYTHON_API_URL}" > .env.production && \
-    echo "VITE_JAVA_API_URL=${VITE_JAVA_API_URL}" >> .env.production
+RUN if [ "$BUILD_MODE" = "development" ]; then \
+      cp .env.development .env.production; \
+    fi
 
-RUN cat .env.production
-
-# Build with production mode
 RUN npm run build
 
 # Stage 2: Serve with Nginx
