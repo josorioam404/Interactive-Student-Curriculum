@@ -1,6 +1,8 @@
+//MainLayout.tsx
+
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, BookOpen, LayoutDashboard, Settings, LogOut, UserCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Menu, X, BookOpen, LayoutDashboard, Settings, LogOut, UserCircle, ChevronLeft, ChevronRight, Mail, User } from 'lucide-react';
 import logoUnal from '../assets/logo_unal.png';
 import './MainLayout.css';
 
@@ -9,12 +11,17 @@ interface UserData {
   name: string;
   role: string;
   dept: string;
+  email?: string; // Campo opcional (los invitados pueden no tenerlo en el objeto base)
 }
 
 export const MainLayout: React.FC = () => {
-  // Controla la visibilidad del menú en móvil y el estado colapsado en escritorio
+  // Controla la visibilidad de los menús
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  
+  // Estado para el Modal de Perfil
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -34,6 +41,8 @@ export const MainLayout: React.FC = () => {
   // Gestiona el cierre de sesión limpiando el almacenamiento y el estado
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userId');
     setUser(null);
     navigate('/login');
   };
@@ -74,7 +83,12 @@ export const MainLayout: React.FC = () => {
         </div>
 
         <div className="header-right">
-          <div className="user-profile-header">
+          {/* Se añade onClick para abrir el modal de perfil */}
+          <div 
+            className="user-profile-header" 
+            onClick={() => setIsProfileOpen(true)}
+            title="Ver información de perfil"
+          >
             <div className="text-right hidden md:block">
               <p className="user-name">{user.name}</p>
               <p className="user-role-label">
@@ -83,6 +97,7 @@ export const MainLayout: React.FC = () => {
             </div>
             <UserCircle size={32} className="text-white opacity-90" />
           </div>
+          
           <button onClick={handleLogout} className="logout-header-btn" title="Cerrar Sesión">
             <LogOut size={20} />
           </button>
@@ -90,10 +105,9 @@ export const MainLayout: React.FC = () => {
       </header>
 
       <div className="layout-body">
-        {/* Renderiza la barra lateral con clases condicionales para apertura móvil y colapso */}
+        {/* Barra Lateral */}
         <aside className={`sidebar ${isSidebarOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
           
-          {/* Botón para alternar el estado colapsado del menú */}
           <button 
             className="sidebar-toggle-btn" 
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -116,7 +130,6 @@ export const MainLayout: React.FC = () => {
               </Link>
             ))}
 
-            {/* Renderiza elementos administrativos solo si el rol es 'admin' */}
             {user.role === 'admin' && (
               <>
                 <div className="nav-divider">ADMINISTRACIÓN</div>
@@ -137,7 +150,7 @@ export const MainLayout: React.FC = () => {
           </nav>
         </aside>
 
-        {/* Contenedor principal del contenido con scroll interno y pie de página */}
+        {/* Contenido Principal */}
         <main className="main-content">
            <div className="page-scroll-container">
               <div className="page-content-wrapper">
@@ -149,6 +162,56 @@ export const MainLayout: React.FC = () => {
            </div>
         </main>
       </div>
+
+      {/* --- MODAL DE PERFIL --- */}
+      {isProfileOpen && (
+        <div className="profile-modal-overlay" onClick={() => setIsProfileOpen(false)}>
+          <div className="profile-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="profile-modal-header">
+              <h3>Mi Perfil</h3>
+              <button className="profile-close-btn" onClick={() => setIsProfileOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="profile-modal-body">
+              <div className="profile-avatar-large">
+                <UserCircle size={64} color="var(--color-unal-gray)" />
+              </div>
+              
+              <div className="profile-info-group">
+                <label>Nombre</label>
+                <div className="profile-value">
+                  <User size={16} />
+                  <span>{user.name}</span>
+                </div>
+              </div>
+
+              <div className="profile-info-group">
+                <label>Correo Electrónico</label>
+                <div className="profile-value">
+                  <Mail size={16} />
+                  <span>{user.email || 'No disponible (Invitado)'}</span>
+                </div>
+              </div>
+
+              <div className="profile-info-group">
+                <label>Rol</label>
+                <span className={`role-badge ${user.role}`}>
+                  {user.role === 'admin' ? 'Administrador' : user.role === 'guest' ? 'Invitado' : 'Estudiante'}
+                </span>
+              </div>
+            </div>
+
+            <div className="profile-modal-footer">
+              <button className="btn-close-profile" onClick={() => setIsProfileOpen(false)}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
