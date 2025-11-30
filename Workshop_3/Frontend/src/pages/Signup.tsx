@@ -14,6 +14,8 @@ export const Signup: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const JAVA_API_URL = import.meta.env.VITE_JAVA_API_URL;
+
   // Estructura de datos para gestionar errores en campos de registro
   const [errors, setErrors] = useState({
     fullName: '',
@@ -78,7 +80,7 @@ export const Signup: React.FC = () => {
         selectedProgramCodeSia: null
       };
 
-      const res = await fetch("http://localhost:8080/auth/register", {
+      const res = await fetch(`${JAVA_API_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser)

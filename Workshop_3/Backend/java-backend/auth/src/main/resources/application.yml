@@ -1,13 +1,17 @@
 server:
   port: 8080
 
+# Frontend URL configuration
+frontend:
+  url: ${FRONTEND_URL:http://54.89.37.108:5173}
+
 spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:postgresql://localhost:5432/interactive_curriculum
-    username: admin
-    password: admin123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/interactive_curriculum}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -26,7 +30,7 @@ spring:
 # Python FastAPI backend URL
 python:
   api:
-    url: http://localhost:8000
+    url: ${PYTHON_API_URL:http://localhost:8000}
 
 jwt:
   secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970

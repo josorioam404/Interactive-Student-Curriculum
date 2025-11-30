@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class CurriculumImportService {
 
-  @Value("${PYTHON_API_URL:http://python-backend:8000}")
+  @Value("${python.api.url}")
   private String pythonApiUrl;
 
   private final RestTemplate restTemplate;

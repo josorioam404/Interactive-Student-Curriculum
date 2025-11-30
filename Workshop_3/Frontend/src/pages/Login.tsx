@@ -20,13 +20,15 @@ export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false); 
   const [error, setError] = useState('');
 
+  const JAVA_API_URL = import.meta.env.VITE_JAVA_API_URL;
+
   // Valida las credenciales contra datos estáticos y redirige según el rol
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const res = await fetch("http://localhost:8080/auth/login", {
+      const res = await fetch(`${JAVA_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })

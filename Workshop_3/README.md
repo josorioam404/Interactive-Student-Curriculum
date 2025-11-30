@@ -5,11 +5,19 @@
 - Docker
 - Docker Compose
 
-## Usage
+## For production
 
 ```bash
 docker compose up --build
 ```
+
+
+## For development 
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
 
 ## Configuration
 

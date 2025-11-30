@@ -1,5 +1,6 @@
 package com.curriculum.auth.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -13,11 +14,19 @@ import java.util.List;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
+  @Value("${frontend.url:http://54.89.37.108:5173}")
+  private String frontendUrl;
+
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
 
-    config.setAllowedOrigins(List.of("http://localhost:5173"));
+    // Allow both local development and production
+    config.setAllowedOrigins(List.of(
+        "http://localhost:5173", // Local development
+        frontendUrl // Production from env var or default
+    ));
+
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setExposedHeaders(List.of("Authorization"));

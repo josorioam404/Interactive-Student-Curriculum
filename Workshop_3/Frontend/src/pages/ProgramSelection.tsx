@@ -10,6 +10,8 @@ export const ProgramSelection: React.FC = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
+    const JAVA_API_URL = import.meta.env.VITE_JAVA_API_URL;
+
     // Alterna el estado de selección de una tarjeta al interactuar con ella
     const handleProgramClick = (id: string) => {
         setSelectedId(prevId => prevId === id ? null : id);
@@ -41,7 +43,7 @@ export const ProgramSelection: React.FC = () => {
             }
 
             // Send program update to backend
-            const response = await fetch('http://localhost:8080/auth/update-program', {
+            const response = await fetch(`${JAVA_API_URL}/auth/update-program`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
