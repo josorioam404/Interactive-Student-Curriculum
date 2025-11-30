@@ -35,6 +35,8 @@ export const AdminPanel: React.FC = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
+  const JAVA_API_URL = import.meta.env.VITE_JAVA_API_URL;
+
   // Accede al token para verificar que el admin esté autenticado
   const getToken = () => {
     const token = localStorage.getItem('accessToken') || '';
@@ -57,7 +59,7 @@ export const AdminPanel: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/admin/logs', {
+      const response = await fetch(`${JAVA_API_URL}/admin/logs`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -93,7 +95,7 @@ export const AdminPanel: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/admin/create-admin', {
+      const response = await fetch(`${JAVA_API_URL}/admin/create-admin`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -192,7 +194,7 @@ export const AdminPanel: React.FC = () => {
       const formData = new FormData();
       formData.append('file', uploadedFile);
 
-      const response = await fetch('http://localhost:8080/admin/upload-curriculum', {
+      const response = await fetch(`${JAVA_API_URL}/admin/upload-curriculum`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

@@ -6,13 +6,14 @@ export const AcademicReport: React.FC = () => {
   const [items, setItems] = useState<StudyPlanItem[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;
 
   const getToken = () => localStorage.getItem("accessToken") || "";
 
   const fetchCurriculum = async () => {
     const token = getToken();
 
-    const res = await fetch("http://localhost:8000/api/student/curriculum", {
+    const res = await fetch(`${PYTHON_API_URL}/api/student/curriculum`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
@@ -27,7 +28,7 @@ export const AcademicReport: React.FC = () => {
   const fetchSummary = async () => {
     const token = getToken();
 
-    const res = await fetch("http://localhost:8000/api/student/progress-summary", {
+    const res = await fetch(`${PYTHON_API_URL}/api/student/progress-summary`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

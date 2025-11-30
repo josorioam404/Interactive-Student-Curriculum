@@ -2,13 +2,21 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# Accept build argument
+ARG BUILD_MODE=production
+
 # Install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm ci  
 
 # Copy all frontend files and build
 COPY . .
-RUN npm run build
+
+# Build based on mode
+RUN if [ "$BUILD_MODE" = "development" ]; then \
+      echo "Building for development..."; \
+      cp .env.development .env.production; \
+    fi && npm run build
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine

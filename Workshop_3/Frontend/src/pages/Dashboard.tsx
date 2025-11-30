@@ -27,6 +27,8 @@ export const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;
+
   // Get token from localStorage
   const getToken = () => localStorage.getItem('accessToken') || '';
 
@@ -40,7 +42,7 @@ export const Dashboard: React.FC = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/student/curriculum', {
+      const response = await fetch(`${PYTHON_API_URL}/api/student/curriculum`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -65,7 +67,7 @@ export const Dashboard: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch('http://localhost:8000/api/student/progress-summary', {
+      const response = await fetch(`${PYTHON_API_URL}/api/student/progress-summary`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
