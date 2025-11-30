@@ -36,23 +36,23 @@ jobs:
 
       - name: Deploy application
         run: |
-        ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
-        cd /home/ubuntu/app
-
-        # Pull latest images with --no-cache equivalent
-        docker compose pull --ignore-pull-failures || true
-        docker compose down
-        docker image prune -af  # Remove old images
-
-        # Pull again to ensure fresh images
-        docker compose pull
-
-        # Start new containers
-        docker compose up -d --force-recreate
-
-        # Show running containers
-        docker compose ps
-        '
+          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
+            cd /home/ubuntu/app
+            
+            # Pull latest images with --no-cache equivalent
+            docker compose pull --ignore-pull-failures || true
+            docker compose down
+            docker image prune -af  # Remove old images
+            
+            # Pull again to ensure fresh images
+            docker compose pull
+            
+            # Start new containers
+            docker compose up -d --force-recreate
+            
+            # Show running containers
+            docker compose ps
+          '
       - name: Verify deployment
         run: |
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
