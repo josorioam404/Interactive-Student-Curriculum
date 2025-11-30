@@ -30,10 +30,10 @@ jobs:
           '
       - name: Copy docker-compose.yml to EC2
         run: |
-          scp -i ~/.ssh/deploy_key.pem ./Workshop_3/docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
+          scp -i ~/.ssh/deploy_key.pem ./isc-project/docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
       - name: Copy Database schema to EC2
         run: |
-          scp -i ~/.ssh/deploy_key.pem -r ./Workshop_3/Database/schema/* ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/Database/schema/
+          scp -i ~/.ssh/deploy_key.pem -r ./isc-project/Database/schema/* ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/Database/schema/
 
       - name: Deploy application
         run: |

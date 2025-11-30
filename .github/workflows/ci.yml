@@ -19,7 +19,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Run Java backend tests 
-        working-directory: ./Workshop_3/Backend/java-backend/auth
+        working-directory: ./isc-project/Backend/java-backend/auth
         run: echo "Testing java backend" 
         # mvn -B test
       #   Python Backend Tests (pytest)
@@ -28,10 +28,10 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install Python dependencies
-        working-directory: ./Workshop_3/Backend/python-backend
+        working-directory: ./isc-project/Backend/python-backend
         run: pip install -r requirements.txt
       - name: Run Python tests 
-        working-directory: ./Workshop_3/Backend/python-backend
+        working-directory: ./isc-project/Backend/python-backend
         run: echo "Testing python backend" 
         # pytest -q
       #   Frontend Tests (Jest)
@@ -40,10 +40,10 @@ jobs:
         with:
           node-version: '18'
       - name: Install frontend dependencies
-        working-directory: ./Workshop_3/Frontend
+        working-directory: ./isc-project/Frontend
         run: npm ci
       - name: Run frontend tests 
-        working-directory: ./Workshop_3/Frontend
+        working-directory: ./isc-project/Frontend
         run: echo "Testing frontend" 
         #npm test -- --ci --watchAll=false
   #   Build & Push Images Only AFTER Tests Pass
@@ -76,8 +76,8 @@ jobs:
       - name: Build & Push Java backend
         uses: docker/build-push-action@v5
         with:
-          context: ./Workshop_3/Backend/java-backend/auth
-          file: ./Workshop_3/Backend/java-backend/auth/Dockerfile
+          context: ./isc-project/Backend/java-backend/auth
+          file: ./isc-project/Backend/java-backend/auth/Dockerfile
           push: true
           tags: |
             josorioam404/isc-java-backend:latest
@@ -86,8 +86,8 @@ jobs:
       - name: Build & Push Python backend
         uses: docker/build-push-action@v5
         with:
-          context: ./Workshop_3/Backend/python-backend
-          file: ./Workshop_3/Backend/python-backend/Dockerfile
+          context: ./isc-project/Backend/python-backend
+          file: ./isc-project/Backend/python-backend/Dockerfile
           push: true
           tags: |
             josorioam404/isc-python-backend:latest
@@ -99,8 +99,8 @@ jobs:
           build-args: |
             VITE_PYTHON_API_URL: "http://54.89.37.108:8000"
             VITE_JAVA_API_URL: "http://54.89.37.108:8080"
-          context: ./Workshop_3/Frontend
-          file: ./Workshop_3/Frontend/Dockerfile
+          context: ./isc-project/Frontend
+          file: ./isc-project/Frontend/Dockerfile
           push: true          
           no-cache: true                    
           provenance: false                
