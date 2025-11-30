@@ -19,3 +19,5 @@ By default, the services start on the following ports:
 - **python-backend:** 8000
 - **Frontend:** 5173
 - **Database:** 5432
+
+Deploy experiment
