@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogEntry.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">auth-service</a> &gt; <a href="index.source.html" class="el_package">com.curriculum.auth.domain.model</a> &gt; <span class="el_source">LogEntry.java</span></div><h1>LogEntry.java</h1><pre class="source lang-java linenums">package com.curriculum.auth.domain.model;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+
+/**
+ * Maps to existing AuditLog table.
+ */
+@Entity
+@Table(name = &quot;auditlog&quot;)
+public class LogEntry {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Integer id;
+
+  @Column(name = &quot;admin_user_id&quot;, nullable = false)
+  private Integer adminUserId;
+
+  @Column(name = &quot;action_type&quot;, nullable = false)
+  private String actionType;
+
+  @Column(name = &quot;target_entity&quot;)
+  private String targetEntity;
+
+  @Column(name = &quot;target_id&quot;)
+  private String targetId;
+
+  @Column(name = &quot;details&quot;, columnDefinition = &quot;TEXT&quot;)
+  private String details;
+
+  @Column(name = &quot;timestamp&quot;)
+  private Instant timestamp;
+
+<span class="nc" id="L35">  public LogEntry() {</span>
+<span class="nc" id="L36">  }</span>
+
+<span class="nc" id="L38">  public LogEntry(Integer adminUserId, String actionType, String targetEntity, String targetId, String details) {</span>
+<span class="nc" id="L39">    this.adminUserId = adminUserId;</span>
+<span class="nc" id="L40">    this.actionType = actionType;</span>
+<span class="nc" id="L41">    this.targetEntity = targetEntity;</span>
+<span class="nc" id="L42">    this.targetId = targetId;</span>
+<span class="nc" id="L43">    this.details = details;</span>
+<span class="nc" id="L44">    this.timestamp = Instant.now();</span>
+<span class="nc" id="L45">  }</span>
+
+  // Getters and setters
+  public Integer getId() {
+<span class="nc" id="L49">    return id;</span>
+  }
+
+  public Integer getAdminUserId() {
+<span class="nc" id="L53">    return adminUserId;</span>
+  }
+
+  public void setAdminUserId(Integer adminUserId) {
+<span class="nc" id="L57">    this.adminUserId = adminUserId;</span>
+<span class="nc" id="L58">  }</span>
+
+  public String getActionType() {
+<span class="nc" id="L61">    return actionType;</span>
+  }
+
+  public void setActionType(String actionType) {
+<span class="nc" id="L65">    this.actionType = actionType;</span>
+<span class="nc" id="L66">  }</span>
+
+  public String getTargetEntity() {
+<span class="nc" id="L69">    return targetEntity;</span>
+  }
+
+  public void setTargetEntity(String targetEntity) {
+<span class="nc" id="L73">    this.targetEntity = targetEntity;</span>
+<span class="nc" id="L74">  }</span>
+
+  public String getTargetId() {
+<span class="nc" id="L77">    return targetId;</span>
+  }
+
+  public void setTargetId(String targetId) {
+<span class="nc" id="L81">    this.targetId = targetId;</span>
+<span class="nc" id="L82">  }</span>
+
+  public String getDetails() {
+<span class="nc" id="L85">    return details;</span>
+  }
+
+  public void setDetails(String details) {
+<span class="nc" id="L89">    this.details = details;</span>
+<span class="nc" id="L90">  }</span>
+
+  public Instant getTimestamp() {
+<span class="nc" id="L93">    return timestamp;</span>
+  }
+
+  public void setTimestamp(Instant timestamp) {
+<span class="nc" id="L97">    this.timestamp = timestamp;</span>
+<span class="nc" id="L98">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
