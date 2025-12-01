@@ -221,5 +221,177 @@ file: curriculum.csv
 
 # python-backend 
 
-python-backend is responsible of CRUD and business logic of the app.
+python-backend handles curriculum/business logic and student progress.  
+**Base URL:** `http://localhost:8000`  
+**Auth:** Pass `Authorization: Bearer <JWT>` issued by the Java service for protected routes.
 
+## Health — `/health`
+**GET /health** — Connectivity check to PostgreSQL.  
+Response 200
+```json
+{
+  "status": "healthy",
+  "database": "connected"
+}
+```
+
+## Student — `/api/student`
+**GET /api/student/curriculum** — Full curriculum for the authenticated student.  
+Response 200
+```json
+{
+  "userId": 12,
+  "userName": "John Doe",
+  "programCode": "ING01",
+  "curriculum": [
+    {
+      "id": 1,
+      "subject_code": "FUND101",
+      "suggested_semester": 1,
+      "component": "Core",
+      "is_obligatory": true,
+      "prereq_rules": null,
+      "subject": {
+        "name": "Foundations I",
+        "credits": 3,
+        "weekly_hours": 4,
+        "description": "Intro course"
+      },
+      "progress": {
+        "status": "Completed",
+        "final_grade": 4.2
+      }
+    }
+  ]
+}
+```
+
+**GET /api/student/progress-summary** — Credits and GPA summary.  
+Response 200
+```json
+{
+  "userId": 12,
+  "completedSubjects": 6,
+  "completedCredits": 18,
+  "totalProgramCredits": 160,
+  "progressPercentage": 11.3,
+  "gpa": 4.1,
+  "papa": 4.0
+}
+```
+
+**POST /api/student/progress** — Upsert subject status/grade.  
+Query/form params: `subject_code` (string), `status` ("Not Taken" | "Completed" | "Planned" | "Enrolled"), `final_grade` (optional 0.0–5.0).  
+Response 200
+```json
+{
+  "success": true,
+  "message": "Progress updated for FUND101",
+  "subject_code": "FUND101",
+  "status": "Completed",
+  "final_grade": 4.5
+}
+```
+
+**GET /api/student/available-courses** — Subjects unlocked by prerequisites.  
+Response 200
+```json
+{
+  "userId": 12,
+  "availableCourses": [
+    {
+      "subject_code": "CALC102",
+      "name": "Calculus II",
+      "credits": 4,
+      "suggested_semester": 2,
+      "status": "Not Taken"
+    }
+  ],
+  "count": 1
+}
+```
+
+## Curriculum — `/api/curriculum`
+**GET /api/curriculum/available-subjects** — Alternative calculation of available subjects (based on completed courses).  
+Response 200
+```json
+{
+  "userId": 12,
+  "data": [
+    {
+      "code": "CALC102",
+      "name": "Calculus II",
+      "credits": 4,
+      "semester": 2,
+      "component": "Core",
+      "status": "Available"
+    }
+  ]
+}
+```
+
+**POST /api/curriculum/upload** — Upload CSV/JSON study plan (multipart/form-data).  
+Request (multipart):
+```
+file: curriculum.csv
+```
+Response 200
+```json
+{
+  "success": true,
+  "message": "Archivo curriculum.csv procesado correctamente",
+  "recordsProcessed": 120,
+  "recordsCreated": 120,
+  "recordsUpdated": 0,
+  "recordsFailed": 0
+}
+```
+
+## Admin (placeholders) — `/api/subjects`
+These endpoints currently return stub data for UI development.
+
+**GET /api/subjects/search?query=phys**  
+Response 200
+```json
+[{
+  "code": "FISG1001",
+  "name": "Fundamentos de Física I",
+  "credits": 4,
+  "prerequisites": []
+}]
+```
+
+**GET /api/subjects/{code}**  
+Response 200
+```json
+{
+  "code": "FISG1001",
+  "name": "Fundamentos de Física I",
+  "credits": 4,
+  "type": "Required",
+  "semester": 1,
+  "prerequisites": []
+}
+```
+
+**PUT /api/subjects/{code}**  
+Request body example:
+```json
+{
+  "name": "Fundamentos de Física I",
+  "credits": 4,
+  "prerequisites": []
+}
+```
+Response 200
+```json
+{
+  "success": true,
+  "message": "Subject FISG1001 updated successfully",
+  "subject": {
+    "name": "Fundamentos de Física I",
+    "credits": 4,
+    "prerequisites": []
+  }
+}
+```

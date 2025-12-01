@@ -44,6 +44,6 @@ Services expose by default:
 Set env vars so each service can reach others (see compose files for examples).
 
 ## Documentation
-- Java API: `Docs/API_Documentation.md`
+- REST APIs (Java & Python) with examples: `Docs/API_Documentation.md`
 - Python API and service details: `Backend/python-backend/README.md`
 - Database schema: `Database/schema/`

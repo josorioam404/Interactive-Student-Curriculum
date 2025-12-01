@@ -4,7 +4,11 @@ This folder contains two services:
 - `java-backend/` (Spring Boot): Authentication, JWT issuance, admin actions, and orchestration with the Python API.
 - `python-backend/` (FastAPI): Curriculum logic, student progress, and file ingestion for study plans.
 
-Below is the documentation for the Python service.
+Each service lives in its own folder (`java-backend`, `python-backend`) as required. DB connection configs live in:
+- Java: `Backend/java-backend/auth/src/main/resources/application.yml`
+- Python: `Backend/python-backend/database/db.py` (env vars), plus compose env in `docker-compose*.yml`
+
+Below is the documentation for the Python service (see `Docs/API_Documentation.md` for full endpoint examples).
 
 ## Python Backend (FastAPI)
 
