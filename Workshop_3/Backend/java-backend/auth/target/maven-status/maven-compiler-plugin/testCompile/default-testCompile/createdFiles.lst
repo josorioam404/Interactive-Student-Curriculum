@@ -1,0 +1,3 @@
+com\curriculum\auth\application\service\AuthServiceTest.class
+com\curriculum\auth\controller\AuthControllerTest.class
+com\curriculum\auth\integration\AuthIntegrationTest.class

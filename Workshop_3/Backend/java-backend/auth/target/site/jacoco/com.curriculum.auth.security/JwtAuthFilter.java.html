@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtAuthFilter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">auth-service</a> &gt; <a href="index.source.html" class="el_package">com.curriculum.auth.security</a> &gt; <span class="el_source">JwtAuthFilter.java</span></div><h1>JwtAuthFilter.java</h1><pre class="source lang-java linenums">package com.curriculum.auth.security;
+
+import com.curriculum.auth.domain.model.User;
+import com.curriculum.auth.infrastructure.repository.UserRepository;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.Optional;
+
+public class JwtAuthFilter extends OncePerRequestFilter {
+
+  private final JwtService jwtService;
+  private final CustomUserDetailsService userDetailsService;
+  private final UserRepository userRepository;
+
+  public JwtAuthFilter(JwtService jwtService,
+      CustomUserDetailsService userDetailsService,
+<span class="nc" id="L28">      UserRepository userRepository) {</span>
+<span class="nc" id="L29">    this.jwtService = jwtService;</span>
+<span class="nc" id="L30">    this.userDetailsService = userDetailsService;</span>
+<span class="nc" id="L31">    this.userRepository = userRepository;</span>
+<span class="nc" id="L32">  }</span>
+
+  @Override
+  protected void doFilterInternal(@NonNull HttpServletRequest request,
+      @NonNull HttpServletResponse response,
+      @NonNull FilterChain filterChain)
+      throws ServletException, IOException {
+
+<span class="nc" id="L40">    final String header = request.getHeader(&quot;Authorization&quot;);</span>
+<span class="nc bnc" id="L41" title="All 4 branches missed.">    if (!StringUtils.hasText(header) || !header.startsWith(&quot;Bearer &quot;)) {</span>
+<span class="nc" id="L42">      filterChain.doFilter(request, response);</span>
+<span class="nc" id="L43">      return;</span>
+    }
+
+<span class="nc" id="L46">    final String token = header.substring(7);</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">    if (!jwtService.validateToken(token)) {</span>
+<span class="nc" id="L48">      filterChain.doFilter(request, response);</span>
+<span class="nc" id="L49">      return;</span>
+    }
+
+<span class="nc" id="L52">    Claims claims = jwtService.parseClaims(token);</span>
+<span class="nc" id="L53">    String email = claims.getSubject();</span>
+
+<span class="nc bnc" id="L55" title="All 4 branches missed.">    if (email == null || SecurityContextHolder.getContext().getAuthentication() != null) {</span>
+<span class="nc" id="L56">      filterChain.doFilter(request, response);</span>
+<span class="nc" id="L57">      return;</span>
+    }
+
+    // Load full User from DB
+<span class="nc" id="L61">    Optional&lt;User&gt; maybeUser = userRepository.findByEmail(email);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">    if (maybeUser.isEmpty()) {</span>
+<span class="nc" id="L63">      filterChain.doFilter(request, response);</span>
+<span class="nc" id="L64">      return;</span>
+    }
+
+<span class="nc" id="L67">    User user = maybeUser.get();</span>
+<span class="nc" id="L68">    UserDetails userDetails = userDetailsService.loadUserByUsername(email);</span>
+
+    // Create authentication token
+<span class="nc" id="L71">    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(</span>
+        userDetails,
+        null,
+<span class="nc" id="L74">        userDetails.getAuthorities());</span>
+
+<span class="nc" id="L76">    auth.setDetails(String.valueOf(user.getId()));</span>
+
+<span class="nc" id="L78">    SecurityContextHolder.getContext().setAuthentication(auth);</span>
+
+<span class="nc" id="L80">    filterChain.doFilter(request, response);</span>
+<span class="nc" id="L81">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

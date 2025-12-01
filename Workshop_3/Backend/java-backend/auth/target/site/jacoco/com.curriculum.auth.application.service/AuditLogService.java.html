@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AuditLogService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">auth-service</a> &gt; <a href="index.source.html" class="el_package">com.curriculum.auth.application.service</a> &gt; <span class="el_source">AuditLogService.java</span></div><h1>AuditLogService.java</h1><pre class="source lang-java linenums">package com.curriculum.auth.application.service;
+
+import com.curriculum.auth.domain.model.LogEntry;
+import com.curriculum.auth.infrastructure.repository.LogEntryRepository;
+import com.curriculum.auth.infrastructure.repository.UserRepository;
+import org.springframework.stereotype.Service;
+
+// Servicio de almacenamiento de logs de admin
+@Service
+public class AuditLogService {
+
+  private final LogEntryRepository logEntryRepository;
+  private final UserRepository userRepository;
+
+  public AuditLogService(LogEntryRepository logEntryRepository,
+<span class="nc" id="L16">      UserRepository userRepository) {</span>
+<span class="nc" id="L17">    this.logEntryRepository = logEntryRepository;</span>
+<span class="nc" id="L18">    this.userRepository = userRepository;</span>
+<span class="nc" id="L19">  }</span>
+
+  // Creates a log entry for an admin action.
+
+  public void logAdminAction(Integer adminUserId, String actionType, String targetEntity, String targetId,
+      String details) {
+<span class="nc" id="L25">    LogEntry entry = new LogEntry(adminUserId, actionType, targetEntity, targetId, details);</span>
+<span class="nc" id="L26">    logEntryRepository.save(entry);</span>
+<span class="nc" id="L27">  }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,199 @@
+/* Configura el contenedor principal con alineación centrada y espaciado responsivo */
+.report-container {
+    padding: 1rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.report-title {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--unal-dark);
+    margin-bottom: 1rem;
+}
+
+/* Establece una cuadrícula responsiva para las tarjetas de métricas */
+.summary-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Estiliza las tarjetas individuales de resumen */
+.summary-card {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.summary-card h3 {
+    font-size: 0.9rem;
+    color: var(--unal-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.summary-card .value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--unal-dark);
+    line-height: 1;
+}
+
+.summary-card .description {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+/* Contenedor para la visualización del gráfico de barras CSS puro */
+.chart-section {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+
+.chart-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--unal-dark);
+    margin-bottom: 2rem;
+}
+
+/* Alinea los elementos del gráfico horizontalmente con anclaje inferior */
+.chart-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 250px; /* Altura fija para visualización */
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #e0e0e0;
+    position: relative;
+}
+
+/* Posiciona líneas de fondo absolutas para referencia visual en el gráfico */
+.chart-grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed #eee;
+    width: 100%;
+    z-index: 0;
+}
+
+.bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80px;
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+/* Define la barra total que representa los créditos pendientes */
+.bar-total {
+    width: 60px;
+    background-color: #f0f0f0;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    overflow: hidden;
+    transition: height 1s ease;
+}
+
+/* Superpone la barra de progreso completado con animación */
+.bar-filled {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--unal-red);
+    transition: height 1s ease 0.5s; /* Retraso para efecto visual */
+}
+
+.bar-label {
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--unal-gray);
+    text-align: center;
+}
+
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--unal-dark);
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+}
+
+/* Configura la sección de tabla con soporte para desplazamiento horizontal */
+.table-section {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    overflow-x: auto;
+}
+
+.grades-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.grades-table th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid var(--unal-red);
+    color: var(--unal-dark);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.grades-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #444;
+    font-size: 0.9rem;
+}
+
+.grades-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Aplica formato condicional para destacar notas altas */
+.grade-good {
+    color: #1b5e20;
+    font-weight: 700;
+}
+
+.grade-average {
+    color: #f57f17;
+}
