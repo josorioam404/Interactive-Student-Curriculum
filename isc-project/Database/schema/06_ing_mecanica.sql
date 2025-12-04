@@ -165,7 +165,7 @@ VALUES
 ('2547', '2017277', 3, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Ingeniería de Diseño'), '{"subjects": [{"code": "2016640", "type": "Prerrequisito"}]}'),
 ('2547', '2017271', 3, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Ingeniería de Diseño'), '{"subjects": [{"code": "1000003", "type": "Prerrequisito"}, {"name": "Principios de Dinámica", "type": "Prerrequisito"}]}'),
 ('2547', '2017268', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Ingeniería de Diseño'), '{"subjects": [{"code": "2017271", "type": "Prerrequisito"}, {"code": "2017277", "type": "Prerrequisito"}]}'),
-('2547', '2017258', 5, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Ingeniería de Diseño'), '{"subjects": [{"code": "2017268", "type": "Prerrequisito"}, {"code": "2017257", "type": "Prerrequisito"}]}'),
+('2547', '2017258', 5, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Ingeniería de Diseño'), '{"subjects": [{"code": "2017268", "type": "Prerrequisito"}, {"code": "2017277", "type": "Prerrequisito"}]}'),
 ('2547', '2017259', 6, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Ingeniería de Diseño'), '{"subjects": [{"code": "2017258", "type": "Prerrequisito"}]}'),
 
 -- Ingeniería Térmica y Fluidos (9 Obligatorios)
