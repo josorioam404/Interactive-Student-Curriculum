@@ -1,0 +1,150 @@
+//Login.tsx
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react'; 
+import logoUnal from '../assets/logo_unal.png';
+import './Login.css';
+
+interface UserSessionData {
+  name: string;
+  role: string;
+  dept: string;
+}
+
+export const Login: React.FC = () => {
+  const navigate = useNavigate();
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); 
+  const [error, setError] = useState('');
+
+  const JAVA_API_URL = import.meta.env.VITE_JAVA_API_URL;
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const res = await fetch(`${JAVA_API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!res.ok) {
+        setError("Credenciales inválidas.");
+        return;
+      }
+
+      const data = await res.json();
+
+      localStorage.setItem("accessToken", data.token);
+      localStorage.setItem("userId", data.userId);
+
+      const userData = {
+        name: data.name,
+        role: data.role,
+        dept: data.dept,
+        email: data.email,
+        programCode: data.programCode
+      };
+
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      navigate("/select-program");
+    } catch (err) {
+      console.error(err);
+      setError("Error conectando con el servidor.");
+    }
+  };
+
+  const handleGuestAccess = () => {
+    // Limpia cualquier rastro de sesiones anteriores autenticadas
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userId');
+
+    // Crea la sesión de invitado
+    const guestData: UserSessionData = { 
+      name: 'Invitado', 
+      role: 'guest', 
+      dept: 'Visitante' 
+    };
+    
+    localStorage.setItem('user', JSON.stringify(guestData));
+    
+    // Redirige a selección de programa para simular la experiencia completa
+    navigate('/select-program');
+  };
+
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        <img src={logoUnal} alt="Logo UNAL" className="login-logo" onError={(e) => e.currentTarget.style.display='none'}/>
+        
+        <h1 className="login-title">Bienvenido a UNAL Académico</h1>
+        <p className="login-description">
+          Inicia sesión o regístrate para gestionar tu plan de estudios.
+        </p>
+
+        {error && <div className="error-message">{error}</div>}
+
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
+            <label htmlFor="email">Correo electrónico o Usuario</label>
+            <input
+              type="email"
+              id="email"
+              className="form-input"
+              placeholder="Ej: tu.correo@unal.edu.co"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Contraseña</label>
+            <div className="password-wrapper">
+              <input
+                type={showPassword ? "text" : "password"} 
+                id="password"
+                className="form-input password-input"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button"
+                className="toggle-password-btn"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" className="btn-primary">Ingresar</button>
+        </form>
+
+        <div className="login-actions">
+          <button className="btn-secondary" onClick={() => navigate('/signup')}>
+            Registrarse
+          </button>
+        </div>
+
+        <div className="login-footer">
+          <button className="link-btn" onClick={handleGuestAccess}>
+            Explorar como Invitado
+          </button>
+          <button className="link-btn small" onClick={() => alert("Funcionalidad de recuperación pendiente")}>
+            ¿Olvidaste tu contraseña?
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

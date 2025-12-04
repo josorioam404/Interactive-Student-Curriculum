@@ -1,0 +1,427 @@
+/* Define el contenedor principal que abarca toda la pantalla sin scroll externo */
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--unal-light-gray);
+  overflow: hidden;
+}
+
+/* Estiliza el encabezado principal con degradado institucional y sombra suave */
+.main-header {
+  height: var(--header-height);
+  background: linear-gradient(90deg, var(--unal-red) 0%, #7a1316 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  z-index: 60;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Agrupa elementos izquierdos del header (Logo, menú móvil) */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 100%;
+}
+
+.brand-container-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  height: 48px;
+  width: auto;
+  background-color: white; 
+  border-radius: 50%;
+  padding: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  object-fit: contain; 
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.brand-main {
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.5px;
+}
+
+.brand-sub {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+/* Agrupa elementos derechos del header (Perfil usuario, logout) */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.user-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-right: 1rem;
+  border-right: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer; /* Indica que es interactivo */
+  transition: opacity 0.2s;
+}
+
+.user-profile-header:hover {
+  opacity: 0.8;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin: 0;
+  text-align: right;
+}
+
+.user-role-label {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin: 0;
+  text-align: right;
+  font-style: italic;
+}
+
+.logout-header-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.logout-header-btn:hover {
+  background: rgba(255,255,255,0.25);
+  transform: scale(1.05);
+}
+
+.menu-btn-mobile {
+  display: none; 
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+/* Contenedor flexible para sidebar y contenido principal */
+.layout-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+/* Configura la barra lateral con transición suave de ancho */
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: white;
+  border-right: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+  z-index: 50;
+  position: relative;
+}
+
+/* Estilos específicos para el estado colapsado del sidebar */
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar.collapsed .nav-item-label,
+.sidebar.collapsed .nav-divider {
+  display: none;
+}
+
+.sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+/* Botón flotante para colapsar/expandir sidebar */
+.sidebar-toggle-btn {
+  position: absolute;
+  top: 15px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--unal-gray);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 100;
+  transition: all 0.2s;
+}
+
+.sidebar-toggle-btn:hover {
+  color: var(--unal-red);
+  border-color: var(--unal-red);
+  transform: scale(1.1);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1.5rem 0.8rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--unal-gray);
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  background-color: #f3f4f6;
+  color: var(--unal-dark);
+}
+
+.nav-item.active {
+  background-color: var(--unal-red);
+  color: white;
+  box-shadow: 0 4px 6px rgba(149, 25, 28, 0.25);
+}
+
+.nav-divider {
+  margin: 20px 0 10px 0;
+  padding-left: 16px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-top: 1px solid #eee;
+  padding-top: 15px;
+  white-space: nowrap;
+}
+
+/* Área de contenido principal donde se renderizan las páginas */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--unal-light-gray);
+  position: relative;
+}
+
+/* Contenedor scrollable interno para el contenido y footer */
+.page-scroll-container {
+  flex: 1;
+  overflow-y: auto; 
+  display: flex;
+  flex-direction: column; 
+  padding: 0;
+}
+
+.page-content-wrapper {
+  flex: 1;
+}
+
+.app-footer {
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--unal-gray);
+  background-color: white;
+  border-top: 1px solid #e0e0e0;
+  flex-shrink: 0; 
+  margin-top: auto; 
+}
+
+/* =========================================
+   ESTILOS DEL MODAL DE PERFIL
+   ========================================= */
+.profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.2s ease-out;
+}
+
+.profile-modal-card {
+  background-color: white;
+  width: 90%;
+  max-width: 400px;
+  border-radius: var(--radius-card);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: slideUp 0.3s ease-out;
+}
+
+.profile-modal-header {
+  padding: 1.2rem;
+  background-color: var(--unal-light-gray);
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profile-modal-header h3 {
+  margin: 0;
+  color: var(--unal-dark);
+  font-size: 1.1rem;
+}
+
+.profile-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--unal-gray);
+}
+
+.profile-modal-body {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.profile-avatar-large {
+  margin-bottom: 1rem;
+}
+
+.profile-info-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.profile-info-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--unal-gray);
+  text-transform: uppercase;
+}
+
+.profile-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f9fafb;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  color: var(--unal-dark);
+  font-size: 0.95rem;
+}
+
+.profile-value svg {
+  color: var(--unal-red);
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  width: fit-content;
+}
+
+.role-badge.admin {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.role-badge.guest {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.role-badge.student {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.profile-modal-footer {
+  padding: 1rem;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-close-profile {
+  background-color: var(--unal-dark);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Ajustes para dispositivos móviles */
+@media (max-width: 768px) {
+  .menu-btn-mobile {
+    display: block;
+  }
+  
+  .sidebar-toggle-btn {
+    display: none;
+  }
+
+  .sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -100%;
+    height: 100%;
+    box-shadow: 4px 0 8px rgba(0,0,0,0.1);
+  }
+  .sidebar.open {
+    left: 0;
+  }
+}
