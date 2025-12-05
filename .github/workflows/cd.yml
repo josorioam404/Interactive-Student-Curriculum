@@ -56,11 +56,18 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           EOF
             
-            # Create python-backend.env
-            cat > /home/ubuntu/app/env/python-backend.env << "EOF"
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          # Create python-backend.env
+          cat > /home/ubuntu/app/env/python-backend.env << "EOF"
+          APP_ENV=prod
+
+          DB_HOST=db
+          DB_PORT=5432
+          DB_NAME=${{ secrets.POSTGRES_DB }}
+          DB_USER=${{ secrets.POSTGRES_USER }}
+          DB_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+
           JAVA_BACKEND_URL=${{ secrets.JAVA_BACKEND_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
           EOF
             
             echo "Environment files created"
