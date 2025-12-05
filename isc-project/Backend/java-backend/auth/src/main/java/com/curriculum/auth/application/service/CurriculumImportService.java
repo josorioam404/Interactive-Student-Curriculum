@@ -74,7 +74,7 @@ public class CurriculumImportService {
     HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
     // Call Python API endpoint
-    String pythonEndpoint = pythonApiUrl + "/api/curriculum/upload";
+    String pythonEndpoint = pythonApiUrl + "/curriculum/upload";
 
     try {
       ResponseEntity<PythonUploadResponse> response = restTemplate.exchange(

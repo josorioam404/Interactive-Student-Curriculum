@@ -131,7 +131,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
 
     try {
       const response = await fetch(
-        `${PYTHON_API_URL}/api/student/progress?subject_code=${subject_code}&status=Completed&final_grade=${gradeValue}`,
+        `${PYTHON_API_URL}/student/progress?subject_code=${subject_code}&status=Completed&final_grade=${gradeValue}`,
         {
           method: 'POST',
           headers: {

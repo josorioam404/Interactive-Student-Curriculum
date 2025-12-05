@@ -58,7 +58,7 @@ export const Dashboard: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`${PYTHON_API_URL}/api/student/curriculum`, {
+      const response = await fetch(`${PYTHON_API_URL}/student/curriculum`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -116,7 +116,7 @@ export const Dashboard: React.FC = () => {
     if (!token) return;
 
     try {
-      const response = await fetch(`${PYTHON_API_URL}/api/student/progress-summary`, {
+      const response = await fetch(`${PYTHON_API_URL}/student/progress-summary`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
