@@ -22,11 +22,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Inject SHA tag into compose file
-      - name: Patch compose with SHA tag
-        run: |
-          sed -i "s/IMAGE_TAG:.*/IMAGE_TAG: ${TAG}/g" ./isc-project/docker-compose.yml
-
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
@@ -53,17 +48,17 @@ jobs:
       # DEPLOY
       - name: Deploy application
         run: |
-          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
+          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
             cd /home/ubuntu/app
 
-            echo "Pulling images for tag ${TAG}"
+            echo \"Pulling images for tag ${TAG}\"
             IMAGE_TAG=${TAG} docker compose pull
 
-            echo "Bringing containers up with IMAGE_TAG=${TAG}"
-            IMAGE_TAG=${TAG} docker compose up -d
+            echo \"Bringing containers up with IMAGE_TAG=${TAG}\"
+            IMAGE_TAG=${TAG} docker compose up -d --remove-orphans
 
             docker compose ps
-          '
+          "
 
       # VERIFY
       - name: Verify deployment
