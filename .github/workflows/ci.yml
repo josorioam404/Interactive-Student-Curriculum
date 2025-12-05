@@ -120,9 +120,6 @@ jobs:
       - name: Build & Push Frontend
         uses: docker/build-push-action@v5
         with:
-          build-args: |
-            VITE_PYTHON_API_URL=""
-            VITE_JAVA_API_URL=""
           context: ./isc-project/Frontend
           file: ./isc-project/Frontend/Dockerfile
           push: true
