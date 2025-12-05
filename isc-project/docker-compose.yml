@@ -1,55 +1,51 @@
-version: '3.9'
+version: "3.9"
 
 services:
   db:
-    image: postgres:latest
+    image: postgres:15
     container_name: interactive_curriculum_db
-    environment:
-      POSTGRES_DB: interactive_curriculum
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
-    ports:
-      - "5432:5432"
+    env_file:
+      - ./env/database.env
     volumes:
       - ./Database/schema:/docker-entrypoint-initdb.d
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - isc-net
 
   java-backend:
-    # build: ./Backend/java-backend/auth
-    image: josorioam404/isc-java-backend:latest  # Changed from build
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/interactive_curriculum
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-      PYTHON_API_URL: http://python-backend:8000
-      FRONTEND_URL: http://54.89.37.108:5173
+    image: josorioam404/isc-java-backend:${IMAGE_TAG}
+    networks:
+      - isc-net
     depends_on:
       - db
+    env_file:
+      - ./env/java-backend.env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
 
   python-backend:
-    # build: ./Backend/python-backend
-    image: josorioam404/isc-python-backend:latest  # Changed from build
+    image: josorioam404/isc-python-backend:${IMAGE_TAG}
     container_name: python_backend
-    ports:
-      - "8000:8000"
-    environment:
-      DB_HOST: db
-      DB_NAME: interactive_curriculum
-      DB_USER: admin
-      DB_PASSWORD: admin123
-      FRONTEND_URL: http://54.89.37.108:5173
+    networks:
+      - isc-net
     depends_on:
       - db
+    env_file:
+      - ./env/python-backend.env
 
   frontend:
-    # build: ./Frontend
-    image: josorioam404/isc-frontend:latest  # Changed from build
+    image: josorioam404/isc-frontend:${IMAGE_TAG}
     ports:
-      - "5173:80"
+      - "80:80"
+    networks:
+      - isc-net
     depends_on:
       - java-backend
+      - python-backend
+
+networks:
+  isc-net:
+    driver: bridge
 
 volumes:
   postgres_data:

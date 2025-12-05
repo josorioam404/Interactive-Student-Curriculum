@@ -1,78 +1,96 @@
 name: CD - ISC
+
 on:
   workflow_run:
     workflows: ["CI - ISC"]
-    types:
-      - completed
+    types: [completed]
   workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Only run if CI workflow succeeded
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'main')
-    
+
+    # Same SHA used to build the images in CI
+    env:
+      TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # Inject SHA tag into compose file
+      - name: Patch compose with SHA tag
+        run: |
+          sed -i "s/IMAGE_TAG:.*/IMAGE_TAG: ${TAG}/g" ./isc-project/docker-compose.yml
+
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key.pem
           chmod 600 ~/.ssh/deploy_key.pem
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
       - name: Create app directory on EC2
         run: |
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
             mkdir -p /home/ubuntu/app/Database/schema
           '
+
       - name: Copy docker-compose.yml to EC2
         run: |
-          scp -i ~/.ssh/deploy_key.pem ./isc-project/docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
+          scp -i ~/.ssh/deploy_key.pem ./isc-project/docker-compose.yml \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
+
       - name: Copy Database schema to EC2
         run: |
-          scp -i ~/.ssh/deploy_key.pem -r ./isc-project/Database/schema/* ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/Database/schema/
+          scp -i ~/.ssh/deploy_key.pem -r ./isc-project/Database/schema/* \
+            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/Database/schema/
 
+      # DEPLOY
       - name: Deploy application
         run: |
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
             cd /home/ubuntu/app
-            
-            # Pull latest images with --no-cache equivalent
-            docker compose pull --ignore-pull-failures || true
-            docker compose down
-            docker image prune -af  # Remove old images
-            
-            # Pull again to ensure fresh images
-            docker compose pull
-            
-            # Start new containers
-            docker compose up -d --force-recreate
-            
-            # Show running containers
+
+            echo "Pulling images for tag ${TAG}"
+            IMAGE_TAG=${TAG} docker compose pull
+
+            echo "Bringing containers up with IMAGE_TAG=${TAG}"
+            IMAGE_TAG=${TAG} docker compose up -d
+
             docker compose ps
           '
+
+      # VERIFY
       - name: Verify deployment
         run: |
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
             cd /home/ubuntu/app
-            
-            # Wait a bit for containers to start
-            sleep 10
-            
-            # Check if all containers are running
-            if [ $(docker compose ps -q | wc -l) -eq 4 ]; then
-              echo "All 4 containers are running"
-              docker compose ps
-            else
-              echo "Deployment verification failed"
-              docker compose ps
-              exit 1
+            echo "Waiting for services to stabilize..."
+            sleep 12
+
+            # Java backend
+            if ! curl -fsS http://localhost:8080/actuator/health >/dev/null; then
+              echo "Java backend unhealthy"; exit 1;
             fi
+
+            # Python backend
+            if ! curl -fsS http://localhost:8000/health >/dev/null; then
+              echo "Python backend unhealthy"; exit 1;
+            fi
+
+            # Frontend
+            if ! curl -fsS http://localhost >/dev/null; then
+              echo "Frontend unhealthy"; exit 1;
+            fi
+
+            echo "All services healthy. Deployment successful."
           '
+
       - name: Cleanup
         if: always()
-        run: |
-          rm -f ~/.ssh/deploy_key.pem
+        run: rm -f ~/.ssh/deploy_key.pem
