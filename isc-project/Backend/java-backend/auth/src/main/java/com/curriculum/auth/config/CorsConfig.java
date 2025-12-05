@@ -1,32 +1,29 @@
 package com.curriculum.auth.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
-// Cross-Origin Resource Sharing for communicating with Frontend 
+/**
+ * CORS enabled ONLY in development mode.
+ * In production, NGINX handles all traffic → NO CORS NEEDED.
+ */
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
-
-  @Value("${frontend.url:http://54.89.37.108:5173}")
-  private String frontendUrl;
+@Profile("dev")
+public class CorsConfig {
 
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
 
-    // Allow both local development and production
     config.setAllowedOrigins(List.of(
-        "http://localhost:5173", // Local development
-        frontendUrl // Production from env var or default
+        "http://localhost:5173" // Vite dev server
     ));
-
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setExposedHeaders(List.of("Authorization"));
@@ -34,7 +31,6 @@ public class CorsConfig implements WebMvcConfigurer {
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
-
     return source;
   }
 }
