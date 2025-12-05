@@ -14,10 +14,6 @@ jobs:
       (github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'main')
 
-    # Same SHA used to build the images in CI
-    env:
-      TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,21 +43,26 @@ jobs:
 
       # DEPLOY
       - name: Deploy application
+        env:
+          FULL_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
+          # Extract first 7 chars to match CI tag format
+          SHORT_SHA=$(echo "$FULL_SHA" | cut -c1-7)
+          echo "Deploying with tag: $SHORT_SHA"
+
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
             cd /home/ubuntu/app
-
-            # Pull latest images with --no-cache equivalent
-            docker compose pull --ignore-pull-failures || true
+            
+            echo \"Pulling images for tag $SHORT_SHA\"
+            IMAGE_TAG=$SHORT_SHA docker compose pull
+            
+            echo \"Stopping old containers\"
             docker compose down
-            docker image prune -af  # Remove old images
-
-            echo \"Pulling images for tag ${TAG}\"
-            IMAGE_TAG=${TAG} docker compose pull
-
-            echo \"Bringing containers up with IMAGE_TAG=${TAG}\"
-            IMAGE_TAG=${TAG} docker compose up -d --remove-orphans
-
+            
+            echo \"Starting containers with IMAGE_TAG=$SHORT_SHA\"
+            IMAGE_TAG=$SHORT_SHA docker compose up -d --remove-orphans
+            
+            echo \"Deployment complete\"
             docker compose ps
           "
 
@@ -71,16 +72,24 @@ jobs:
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
             cd /home/ubuntu/app
             
-            # Wait a bit for containers to start
+            # Wait for containers to start
             sleep 10
             
             # Check if all containers are running
-            if [ $(docker compose ps -q | wc -l) -eq 4 ]; then
-              echo "All 4 containers are running"
+            RUNNING=$(docker compose ps -q | wc -l)
+            
+            if [ $RUNNING -eq 4 ]; then
+              echo "✓ All 4 containers are running"
               docker compose ps
+              echo ""
+              echo "Running images:"
+              docker ps --format "table {{.Names}}\t{{.Image}}"
             else
-              echo "Deployment verification failed"
+              echo "✗ Deployment verification failed: only $RUNNING/4 containers running"
               docker compose ps
+              echo ""
+              echo "Container logs:"
+              docker compose logs --tail=50
               exit 1
             fi
           '
