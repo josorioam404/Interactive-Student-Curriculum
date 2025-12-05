@@ -3,79 +3,65 @@ from database.db import get_connection
 def calculate_available_subjects(student_id: int):
     conn = get_connection()
     cur = conn.cursor()
-
     try:
-        # 1. Obtener programa del estudiante
-        cur.execute("""
-            SELECT selected_program_code_sia 
-            FROM "User" 
-            WHERE id = %s
-        """, (student_id,))
+        # 1. Obtener el código del programa del estudiante
+        cur.execute('SELECT selected_program_code_sia FROM "User" WHERE id = %s', (student_id,))
         result = cur.fetchone()
         
-        if not result or not result[0]:
-            return []
+        if not result or not result:
+            return [] # El estudiante no tiene programa asignado
+            
+        program_code = result
 
-        program_code = result[0]
-
-        # 2. Obtener materias YA aprobadas
-        cur.execute("""
-            SELECT subject_code 
-            FROM UserProgress 
-            WHERE user_id = %s AND status = 'Approved'
-        """, (student_id,))
-        passed_subjects = set(row[0] for row in cur.fetchall())
-
-        # 3. Obtener TODAS las materias del plan de estudios
-        # Traemos también las reglas de prerrequisitos (JSONB)
-        cur.execute("""
-            SELECT sp.subject_code, s.name, s.credits, sp.suggested_semester, sp.component, sp.prereq_rules
+        # 2. Ejecutar la consulta INTELIGENTE usando tus funciones SQL
+                
+        query = """
+            SELECT 
+                s.subject_code, 
+                s.name, 
+                s.credits, 
+                sp.suggested_semester, 
+                sp.component
             FROM StudyPlan sp
             JOIN Subject s ON s.subject_code = sp.subject_code
+            
+            LEFT JOIN UserProgress up ON up.subject_code = sp.subject_code 
+                                      AND up.user_id = %s 
+                                      AND up.final_grade >= 3.0
             WHERE sp.program_code_sia = %s
-        """, (program_code,))
+              AND up.subject_code IS NULL 
+              
+              AND FN_Validate_Prerequisites(%s, sp.program_code_sia, sp.subject_code) = TRUE
+            ORDER BY sp.suggested_semester, s.subject_code;
+        """
+                
+        available_subjects = cur.fetchall()
         
-        all_subjects = cur.fetchall()
-        available = []
-
-        for sub in all_subjects:
-            code, name, credits, sem, comp, rules = sub
+        # 3. Formatear la respuesta para el Frontend
+        results = []
+        for row in available_subjects:
+            results.append({
+                "code": row,
+                "name": row[1],
+                "credits": row[2],
+                "semester": row[3],
+                "component": row[4],
+                "status": "Available" # Si la base de datos la devolvió, es porque está disponible
+            })
             
-            # Si ya la vio, no es "disponible para inscribir" (aunque podríamos mostrarla como vista)
-            if code in passed_subjects:
-                continue
+        return results
 
-            # 4. Verificar Prerrequisitos
-            # Si rules es None o lista vacía, no tiene requisitos -> Disponible
-            is_unlockable = True
-            
-            if rules:
-                # El JSON puede ser una lista de objetos: [{"subject_code": "123", "type": "Prerrequisito"}]
-                # O lógica más compleja. Aquí asumimos lista simple de prerrequisitos obligatorios.
-                for rule in rules:
-                    if rule.get("type") == "Prerrequisito":
-                        req_code = rule.get("subject_code")
-                        if req_code and req_code not in passed_subjects:
-                            is_unlockable = False
-                            break
-            
-            if is_unlockable:
-                available.append({
-                    "code": code,
-                    "name": name,
-                    "credits": credits,
-                    "semester": sem,
-                    "component": comp,
-                    "status": "Available"
-                })
-
-        return available
-
+    except Exception as e:
+        print(f"Error calculando materias disponibles: {e}")
+        return []
     finally:
         cur.close()
         conn.close()
 
 def get_completed_subjects(student_id: int):
+    """
+    Retorna el historial de materias vistas por el estudiante.
+    """
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -84,11 +70,18 @@ def get_completed_subjects(student_id: int):
             FROM UserProgress up
             JOIN Subject s ON s.subject_code = up.subject_code
             WHERE up.user_id = %s
+            ORDER BY up.subject_code
         """, (student_id,))
         
         rows = cur.fetchall()
+        
         return [
-            {"code": r[0], "name": r[1], "grade": float(r[2]) if r[2] else 0, "status": r[3]} 
+            {
+                "code": r, 
+                "name": r[1], 
+                "grade": float(r[2]) if r[2] is not None else 0.0, 
+                "status": r[3]
+            }
             for r in rows
         ]
     finally:
