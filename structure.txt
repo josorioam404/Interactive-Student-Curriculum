@@ -1,0 +1,131 @@
+.
+├── isc-project
+│   ├── Backend
+│   │   ├── java-backend
+│   │   │   └── auth
+│   │   │       ├── Dockerfile
+│   │   │       ├── pom.xml
+│   │   │       ├── src
+│   │   │       └── target
+│   │   ├── python-backend
+│   │   │   ├── config
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── settings.py
+│   │   │   ├── database
+│   │   │   │   ├── db.py
+│   │   │   │   └── __init__.py
+│   │   │   ├── dependencies
+│   │   │   │   ├── auth.py
+│   │   │   │   └── __init__.py
+│   │   │   ├── Dockerfile
+│   │   │   ├── main.py
+│   │   │   ├── models
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── requests.py
+│   │   │   │   └── responses.py
+│   │   │   ├── repositories
+│   │   │   │   ├── base.py
+│   │   │   │   ├── curriculum_repository.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── student_repository.py
+│   │   │   ├── requirements.txt
+│   │   │   ├── routers
+│   │   │   │   ├── admin.py
+│   │   │   │   ├── curriculum.py
+│   │   │   │   ├── health.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── student.py
+│   │   │   ├── services
+│   │   │   │   ├── curriculum_service.py
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── student_service.py
+│   │   │   └── utils
+│   │   │       ├── file_processors.py
+│   │   │       ├── __init__.py
+│   │   │       └── jwt_utils.py
+│   │   └── README.md
+│   ├── Database
+│   │   ├── docker-compose.yml
+│   │   ├── README.md
+│   │   └── schema
+│   │       ├── 01_init.sql
+│   │       ├── 02_ing_sistemas.sql
+│   │       ├── 03_ing_electrica.sql
+│   │       ├── 04_ing_civil.sql
+│   │       ├── 05_ing_quimica.sql
+│   │       ├── 06_ing_mecanica.sql
+│   │       ├── 07_ing_industrial.sql
+│   │       ├── 08_ing_agricola.sql
+│   │       └── 09_admin.sql
+│   ├── docker-compose.dev.yml
+│   ├── docker-compose.yml
+│   ├── Docs
+│   │   └── API_Documentation.md
+│   ├── env
+│   │   ├── database.env
+│   │   ├── java-backend.env
+│   │   └── python-backend.env
+│   ├── env.dev
+│   │   ├── database.env
+│   │   ├── java-backend.env
+│   │   └── python-backend.env
+│   ├── Frontend
+│   │   ├── Dockerfile
+│   │   ├── eslint.config.js
+│   │   ├── index.html
+│   │   ├── nginx.conf
+│   │   ├── package.json
+│   │   ├── package-lock.json
+│   │   ├── public
+│   │   │   ├── logo_unal_isc_2.png
+│   │   │   └── logo_unal_isc.png
+│   │   ├── README.md
+│   │   ├── src
+│   │   │   ├── App.css
+│   │   │   ├── App.tsx
+│   │   │   ├── assets
+│   │   │   │   ├── logo_unal.png
+│   │   │   │   └── react.svg
+│   │   │   ├── components
+│   │   │   │   └── curriculum
+│   │   │   ├── data
+│   │   │   │   ├── engineeringPrograms.ts
+│   │   │   │   ├── mockAcademicHistory.ts
+│   │   │   │   ├── mockAdminData.ts
+│   │   │   │   └── mockCurriculum.ts
+│   │   │   ├── index.css
+│   │   │   ├── layouts
+│   │   │   │   ├── MainLayout.css
+│   │   │   │   └── MainLayout.tsx
+│   │   │   ├── main.tsx
+│   │   │   ├── pages
+│   │   │   │   ├── AcademicReport.css
+│   │   │   │   ├── AcademicReport.tsx
+│   │   │   │   ├── AdminPanel.css
+│   │   │   │   ├── AdminPanel.tsx
+│   │   │   │   ├── Dashboard.css
+│   │   │   │   ├── Dashboard.tsx
+│   │   │   │   ├── Login.css
+│   │   │   │   ├── Login.tsx
+│   │   │   │   ├── ProgramSelection.css
+│   │   │   │   ├── ProgramSelection.tsx
+│   │   │   │   ├── Signup.css
+│   │   │   │   └── Signup.tsx
+│   │   │   └── types
+│   │   │       └── index.ts
+│   │   ├── tsconfig.app.json
+│   │   ├── tsconfig.json
+│   │   ├── tsconfig.node.json
+│   │   └── vite.config.ts
+│   ├── package-lock.json
+│   └── README.md
+├── README.md
+├── structure.txt
+├── workshop_1
+│   └── Workshop 1.pdf
+├── workshop_2
+│   └── Workshop_2.pdf
+└── workshop_3
+    └── workshop3.pdf
+
+34 directories, 95 files
