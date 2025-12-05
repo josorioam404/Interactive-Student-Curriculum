@@ -13,7 +13,7 @@ services:
       - isc-net
 
   java-backend:
-    image: josorioam404/isc-java-backend:${IMAGE_TAG}
+    image: josorioam404/isc-java-backend:${IMAGE_TAG:-latest}
     networks:
       - isc-net
     depends_on:
@@ -22,7 +22,7 @@ services:
       - ./env/java-backend.env
 
   python-backend:
-    image: josorioam404/isc-python-backend:${IMAGE_TAG}
+    image: josorioam404/isc-python-backend:${IMAGE_TAG:-latest}
     container_name: python_backend
     networks:
       - isc-net
@@ -32,7 +32,7 @@ services:
       - ./env/python-backend.env
 
   frontend:
-    image: josorioam404/isc-frontend:${IMAGE_TAG}
+    image: josorioam404/isc-frontend:${IMAGE_TAG:-latest}
     ports:
       - "80:80"
     networks:
