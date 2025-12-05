@@ -51,6 +51,11 @@ jobs:
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
             cd /home/ubuntu/app
 
+            # Pull latest images with --no-cache equivalent
+            docker compose pull --ignore-pull-failures || true
+            docker compose down
+            docker image prune -af  # Remove old images
+
             echo \"Pulling images for tag ${TAG}\"
             IMAGE_TAG=${TAG} docker compose pull
 
