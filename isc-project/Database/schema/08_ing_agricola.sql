@@ -48,9 +48,9 @@ INSERT INTO Subject (subject_code, name, credits) VALUES
 ('2016630', 'Electrotecnia', 3),
 ('2015741', 'Termodinámica', 3),
 ('2015968', 'Mecánica de Sólidos', 4), 
-('2015957', 'Suelos Agrícolas', 4), 
-('2016637', 'Hidráulica básica', 4), 
-('2016632', 'Hidrología', 3), 
+('2016632', 'Suelos Agrícolas', 3), 
+('2015961', 'Hidráulica básica', 4), 
+('2015978', 'Hidrología', 3), 
 ('2016634', 'Ingeniería de riegos', 3),
 ('2016628', 'Diseño de sistemas de riego', 3),
 ('2016629', 'Drenaje de tierras agrícolas', 3),
@@ -173,20 +173,20 @@ VALUES
 -- Asignaturas sin agrupación (37 obligatorios)
 ('2016635', 1, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', NULL),
 ('2015968', 2, 'Disciplinary', FALSE, 'Asignaturas sin agrupación', '[{"subject_code": "1000003", "type": "Prerrequisito"}, {"subject_code": "1000019", "type": "Prerrequisito"}]'::jsonb), 
-('2015957', 3, 'Disciplinary', FALSE, 'Asignaturas sin agrupación', '[{"subject_code": "1000024", "type": "Prerrequisito"}]'::jsonb), 
+('2016632', 3, 'Disciplinary', FALSE, 'Asignaturas sin agrupación', '[{"subject_code": "1000024", "type": "Prerrequisito"}]'::jsonb), 
 ('2026134', 3, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', '[{"subject_code": "1000003", "type": "Prerrequisito"}, {"subject_code": "1000019", "type": "Prerrequisito"}]'::jsonb),
 ('2015958', 3, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', '[{"subject_code": "2015711", "type": "Prerrequisito"}, {"subject_code": "2016635", "type": "Prerrequisito"}]'::jsonb),
 ('2015741', 4, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', '[{"subject_code": "1000004", "type": "Prerrequisito"}]'::jsonb),
 ('2015966', 4, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', '[{"subject_code": "1000006", "type": "Prerrequisito"}, {"subject_code": "1000007", "type": "Prerrequisito"}, {"subject_code": "2026134", "type": "Prerrequisito"}]'::jsonb),
-('2016637', 5, 'Disciplinary', FALSE, 'Asignaturas sin agrupación', '[{"subject_code": "2015966", "type": "Prerrequisito"}]'::jsonb), 
-('2016632', 5, 'Disciplinary', FALSE, 'Asignaturas sin agrupación', '[{"subject_code": "2015966", "type": "Prerrequisito"}]'::jsonb), 
-('2015969', 5, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', '[{"subject_code": "2015968", "type": "Prerrequisito"}, {"subject_code": "2015957", "type": "Prerrequisito"}]'::jsonb),
+('2015961', 5, 'Disciplinary', FALSE, 'Asignaturas sin agrupación', '[{"subject_code": "2015966", "type": "Prerrequisito"}]'::jsonb), 
+('2015978', 5, 'Disciplinary', FALSE, 'Asignaturas sin agrupación', '[{"subject_code": "2015966", "type": "Prerrequisito"}]'::jsonb), 
+('2015969', 5, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', '[{"subject_code": "2015968", "type": "Prerrequisito"}, {"subject_code": "2016632", "type": "Prerrequisito"}]'::jsonb),
 ('2016630', 5, 'Disciplinary', TRUE, 'Asignaturas sin agrupación', '[{"credit_rule": 40, "component": "Disciplinary"}]'::jsonb),
 
 -- Ingeniería de Riego y Drenaje (9 obligatorios)
-('2016634', 6, 'Disciplinary', TRUE, 'Ingeniería de Riego y Drenaje', '[{"subject_code": "2016637", "type": "Prerrequisito"}, {"subject_code": "2015957", "type": "Prerrequisito"}]'::jsonb),
+('2016634', 6, 'Disciplinary', TRUE, 'Ingeniería de Riego y Drenaje', '[{"subject_code": "2015961", "type": "Prerrequisito"}, {"subject_code": "2016632", "type": "Prerrequisito"}]'::jsonb),
 ('2016628', 7, 'Disciplinary', TRUE, 'Ingeniería de Riego y Drenaje', '[{"subject_code": "2016634", "type": "Prerrequisito"}]'::jsonb),
-('2016629', 7, 'Disciplinary', TRUE, 'Ingeniería de Riego y Drenaje', '[{"subject_code": "2016634", "type": "Prerrequisito"}, {"subject_code": "2016632", "type": "Prerrequisito"}]'::jsonb),
+('2016629', 7, 'Disciplinary', TRUE, 'Ingeniería de Riego y Drenaje', '[{"subject_code": "2016634", "type": "Prerrequisito"}, {"subject_code": "2015978", "type": "Prerrequisito"}]'::jsonb),
 
 -- Automatización y Control (3 obligatorios)
 ('2016626', 6, 'Disciplinary', TRUE, 'Automatización y Control', '[{"subject_code": "2016630", "type": "Prerrequisito"}]'::jsonb),
@@ -237,4 +237,3 @@ VALUES
 ('1000071', 10, 'Free Elective', FALSE, 'Profundización', '[{"credit_rule": 126, "component": "Total"}]'::jsonb)
 ) AS T1(subject_code, suggested_semester, component, is_obligatory, group_name, prereq_rules)
 JOIN GroupMap gm ON T1.group_name = gm.group_name AND T1.component = gm.component;
-

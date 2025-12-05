@@ -6,7 +6,7 @@ INSERT INTO Subject (subject_code, name, credits) VALUES
 ('1000004', 'Cálculo Diferencial', 4),
 ('1000005', 'Cálculo Integral', 4),
 ('1000003', 'Álgebra Lineal', 4),
-('1000008', 'Cálculo en Varias Variables', 4),
+('1000006', 'Cálculo en Varias Variables', 4),
 ('1000007', 'Ecuaciones Diferenciales', 4),
 ('1000013', 'Probabilidad y Estadística Fundamental', 3),
 
@@ -145,7 +145,7 @@ VALUES
 ('2542', '1000004', 1, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas, Probabilidad y Estadística'), '{"subjects": [{"name": "Matemáticas Básicas", "type": "Prerrequisito"}]}'),
 ('2542', '1000005', 2, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas, Probabilidad y Estadística'), '{"subjects": [{"code": "1000004", "type": "Prerrequisito"}]}'),
 ('2542', '1000003', 2, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas, Probabilidad y Estadística'), '{"subjects": [{"code": "1000004", "type": "Prerrequisito"}]}'),
-('2542', '1000008', 3, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas, Probabilidad y Estadística'), '{"subjects": [{"code": "1000005", "type": "Prerrequisito"}, {"code": "1000003", "type": "Prerrequisito"}]}'),
+('2542', '1000006', 3, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas, Probabilidad y Estadística'), '{"subjects": [{"code": "1000005", "type": "Prerrequisito"}, {"code": "1000003", "type": "Prerrequisito"}]}'),
 ('2542', '1000007', 3, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas, Probabilidad y Estadística'), '{"subjects": [{"code": "1000005", "type": "Prerrequisito"}, {"code": "1000003", "type": "Prerrequisito"}]}'),
 ('2542', '1000013', 3, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas, Probabilidad y Estadística'), '{"subjects": [{"code": "1000004", "type": "Prerrequisito"}]}'),
 
@@ -181,8 +181,8 @@ VALUES
 ('2542', '2015948', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "2026134", "type": "Prerrequisito"}]}'),
 ('2542', '2015957', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "2015958", "type": "Prerrequisito"}]}'),
 ('2542', '2015956', 5, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "2015958", "type": "Prerrequisito"}]}'),
-('2542', '2015966', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "1000008", "type": "Prerrequisito"}, {"code": "1000007", "type": "Prerrequisito"}, {"code": "2026134", "type": "Prerrequisito"}]}'),
-('2542', '2015968', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "1000008", "type": "Prerrequisito"}, {"code": "2026134", "type": "Prerrequisito"}]}'),
+('2542', '2015966', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "1000006", "type": "Prerrequisito"}, {"code": "1000007", "type": "Prerrequisito"}, {"code": "2026134", "type": "Prerrequisito"}]}'),
+('2542', '2015968', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "1000006", "type": "Prerrequisito"}, {"code": "2026134", "type": "Prerrequisito"}]}'),
 ('2542', '2015965', 5, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "1000024", "type": "Prerrequisito"}, {"code": "2015956", "type": "Prerrequisito"}]}'),
 ('2542', '2019978', 6, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"subjects": [{"code": "1000013", "type": "Prerrequisito"}, {"code": "2015966", "type": "Prerrequisito"}]}'),
 ('2542', '2026135', 7, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Básica Disciplinar'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 77}}'), 
@@ -251,4 +251,3 @@ VALUES
 ('2542', '2016763', 9, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Total", "type": "Approved", "min_credits": 126}}'), -- Práctica Estudiantil II [17]
 ('2542', '1000070', 9, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Total", "type": "Approved", "min_credits": 126}}'), -- Práctica Colombia I [17]
 ('2542', '1000071', 9, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Total", "type": "Approved", "min_credits": 126}}'); -- Práctica Colombia II [17]
-
