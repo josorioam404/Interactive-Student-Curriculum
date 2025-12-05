@@ -20,8 +20,6 @@ services:
       - db
     env_file:
       - ./env/java-backend.env
-    environment:
-      SPRING_PROFILES_ACTIVE: prod
 
   python-backend:
     image: josorioam404/isc-python-backend:${IMAGE_TAG}
