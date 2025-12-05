@@ -31,9 +31,21 @@ jobs:
       - name: Copy docker-compose.yml to EC2
         run: |
           scp -i ~/.ssh/deploy_key.pem ./isc-project/docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
+
       - name: Copy Database schema to EC2
         run: |
           scp -i ~/.ssh/deploy_key.pem -r ./isc-project/Database/schema/* ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/Database/schema/
+
+      - name: Copy environment files to EC2
+        run: |
+          if [ -d "./isc-project/env" ]; then
+            scp -i ~/.ssh/deploy_key.pem ./isc-project/env/* \
+              ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/env/
+            echo "Environment files copied successfully"
+          else
+            echo "Warning: env directory not found in repository"
+            exit 1
+          fi
 
       - name: Deploy application
         run: |
