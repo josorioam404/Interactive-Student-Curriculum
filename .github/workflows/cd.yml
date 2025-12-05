@@ -1,14 +1,14 @@
 name: CD - ISC
-
 on:
   workflow_run:
     workflows: ["CI - ISC"]
-    types: [completed]
+    types:
+      - completed
   workflow_dispatch:
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Only run if CI workflow succeeded
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event.workflow_run.conclusion == 'success' &&
@@ -17,83 +17,62 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Configure SSH
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key.pem
           chmod 600 ~/.ssh/deploy_key.pem
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
       - name: Create app directory on EC2
         run: |
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
             mkdir -p /home/ubuntu/app/Database/schema
           '
-
       - name: Copy docker-compose.yml to EC2
         run: |
-          scp -i ~/.ssh/deploy_key.pem ./isc-project/docker-compose.yml \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
-
+          scp -i ~/.ssh/deploy_key.pem ./isc-project/docker-compose.yml ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/
       - name: Copy Database schema to EC2
         run: |
-          scp -i ~/.ssh/deploy_key.pem -r ./isc-project/Database/schema/* \
-            ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/Database/schema/
+          scp -i ~/.ssh/deploy_key.pem -r ./isc-project/Database/schema/* ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/ubuntu/app/Database/schema/
 
-      # DEPLOY
       - name: Deploy application
-        env:
-          FULL_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
         run: |
-          # Extract first 7 chars to match CI tag format
-          SHORT_SHA=$(echo "$FULL_SHA" | cut -c1-7)
-          echo "Deploying with tag: $SHORT_SHA"
-
-          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "
+          ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
             cd /home/ubuntu/app
             
-            echo \"Pulling images for tag $SHORT_SHA\"
-            IMAGE_TAG=$SHORT_SHA docker compose pull
-            
-            echo \"Stopping old containers\"
+            # Pull latest images with --no-cache equivalent
+            docker compose pull --ignore-pull-failures || true
             docker compose down
+            docker image prune -af  # Remove old images
             
-            echo \"Starting containers with IMAGE_TAG=$SHORT_SHA\"
-            IMAGE_TAG=$SHORT_SHA docker compose up -d --remove-orphans
+            # Pull again to ensure fresh images
+            docker compose pull
             
-            echo \"Deployment complete\"
+            # Start new containers
+            docker compose up -d --force-recreate
+            
+            # Show running containers
             docker compose ps
-          "
-
-      # VERIFY
+          '
       - name: Verify deployment
         run: |
           ssh -i ~/.ssh/deploy_key.pem ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} '
             cd /home/ubuntu/app
             
-            # Wait for containers to start
+            # Wait a bit for containers to start
             sleep 10
             
             # Check if all containers are running
-            RUNNING=$(docker compose ps -q | wc -l)
-            
-            if [ $RUNNING -eq 4 ]; then
-              echo "✓ All 4 containers are running"
+            if [ $(docker compose ps -q | wc -l) -eq 4 ]; then
+              echo "All 4 containers are running"
               docker compose ps
-              echo ""
-              echo "Running images:"
-              docker ps --format "table {{.Names}}\t{{.Image}}"
             else
-              echo "✗ Deployment verification failed: only $RUNNING/4 containers running"
+              echo "Deployment verification failed"
               docker compose ps
-              echo ""
-              echo "Container logs:"
-              docker compose logs --tail=50
               exit 1
             fi
           '
-
       - name: Cleanup
         if: always()
-        run: rm -f ~/.ssh/deploy_key.pem
+        run: |
+          rm -f ~/.ssh/deploy_key.pem
