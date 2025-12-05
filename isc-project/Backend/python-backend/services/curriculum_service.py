@@ -1,89 +1,42 @@
-from database.db import get_connection
+from repositories.curriculum_repository import CurriculumRepository
+from repositories.student_repository import StudentRepository
 
-def calculate_available_subjects(student_id: int):
-    conn = get_connection()
-    cur = conn.cursor()
-    try:
-        # 1. Obtener el código del programa del estudiante
-        cur.execute('SELECT selected_program_code_sia FROM "User" WHERE id = %s', (student_id,))
-        result = cur.fetchone()
-        
-        if not result or not result:
-            return [] # El estudiante no tiene programa asignado
+class CurriculumService:
+    def __init__(self):
+        self.curriculum_repo = CurriculumRepository()
+        self.student_repo = StudentRepository()
+
+    def calculate_available_subjects(self, student_id: int):
+        try:
+            # 1. Obtener programa (Reutilizando StudentRepository)
+            user_program = self.student_repo.get_user_program(student_id)
+            if not user_program:
+                return [] 
             
-        program_code = result
+            # Asumiendo que get_user_program retorna una tupla o valor directo
+            # Ajusta según si retorna (code, name) o solo code
+            program_code = user_program if isinstance(user_program, tuple) else user_program
 
-        # 2. Ejecutar la consulta INTELIGENTE usando tus funciones SQL
-                
-        query = """
-            SELECT 
-                s.subject_code, 
-                s.name, 
-                s.credits, 
-                sp.suggested_semester, 
-                sp.component
-            FROM StudyPlan sp
-            JOIN Subject s ON s.subject_code = sp.subject_code
+            # 2. Llamar al repositorio (Aquí ocurre la magia SQL)
+            # Ya no hay "conn = get_connection()" aquí
+            available_subjects = self.curriculum_repo.get_available_subjects_by_rules(
+                student_id, program_code
+            )
+
+            # 3. Formatear respuesta (Mapeo de Tupla a Diccionario)
+            results = []
+            for row in available_subjects:
+                results.append({
+                    "code": row,
+                    "name": row[3],
+                    "credits": row[4],
+                    "semester": row[5],
+                    "component": row[6],
+                    "status": "Available"
+                })
             
-            LEFT JOIN UserProgress up ON up.subject_code = sp.subject_code 
-                                      AND up.user_id = %s 
-                                      AND up.final_grade >= 3.0
-            WHERE sp.program_code_sia = %s
-              AND up.subject_code IS NULL 
-              
-              AND FN_Validate_Prerequisites(%s, sp.program_code_sia, sp.subject_code) = TRUE
-            ORDER BY sp.suggested_semester, s.subject_code;
-        """
-                
-        available_subjects = cur.fetchall()
-        
-        # 3. Formatear la respuesta para el Frontend
-        results = []
-        for row in available_subjects:
-            results.append({
-                "code": row,
-                "name": row[1],
-                "credits": row[2],
-                "semester": row[3],
-                "component": row[4],
-                "status": "Available" # Si la base de datos la devolvió, es porque está disponible
-            })
-            
-        return results
+            return results
 
-    except Exception as e:
-        print(f"Error calculando materias disponibles: {e}")
-        return []
-    finally:
-        cur.close()
-        conn.close()
-
-def get_completed_subjects(student_id: int):
-    """
-    Retorna el historial de materias vistas por el estudiante.
-    """
-    conn = get_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("""
-            SELECT s.subject_code, s.name, up.final_grade, up.status
-            FROM UserProgress up
-            JOIN Subject s ON s.subject_code = up.subject_code
-            WHERE up.user_id = %s
-            ORDER BY up.subject_code
-        """, (student_id,))
-        
-        rows = cur.fetchall()
-        
-        return [
-            {
-                "code": r, 
-                "name": r[1], 
-                "grade": float(r[2]) if r[2] is not None else 0.0, 
-                "status": r[3]
-            }
-            for r in rows
-        ]
-    finally:
-        cur.close()
-        conn.close()
+        except Exception as e:
+            print(f"Error en servicio: {e}")
+            return []

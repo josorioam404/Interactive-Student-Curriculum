@@ -11,7 +11,7 @@ from models.responses import (
 
 class StudentService:
     """Service layer for student-related business logic."""
-    
+
     def __init__(self):
         self.student_repo = StudentRepository()
         self.curriculum_repo = CurriculumRepository()
@@ -109,67 +109,47 @@ class StudentService:
         }
     
     def get_available_courses(self, user_id: int) -> AvailableCoursesResponse:
-        """Get courses available for enrollment based on prerequisites."""
-        user_result = self.student_repo.get_user_program(user_id)
-        if not user_result or not user_result[0]:
-            raise HTTPException(
-                status_code=400, 
-                detail="User has not selected a program"
+        """
+        Obtiene las materias disponibles delegando la validación compleja
+        a la base de datos (FN_Validate_Prerequisites).
+        """
+        try:
+            # 1. Obtener el programa del usuario
+            user_result = self.student_repo.get_user_program(user_id)
+            
+            if not user_result:
+                raise HTTPException(
+                    status_code=400,
+                    detail="User has not selected a program"
+                )
+            
+            # Manejo flexible dependiendo de si el repo devuelve tupla o valor único
+            program_code = user_result if isinstance(user_result, tuple) else user_result
+
+            # 2. Llamar al repositorio unificado que usa la lógica SQL
+            db_rows = self.curriculum_repo.get_available_subjects_by_rules(
+                user_id, program_code
             )
-        
-        program_code = user_result[0]
-        completed_subjects = self.student_repo.get_completed_subjects(user_id)
-        all_subjects = self.student_repo.get_program_subjects_with_prereqs(
-            user_id, program_code
-        )
-        
-        available = []
-        
-        for row in all_subjects:
-            subject_code, prereq_rules, name, credits, semester, status = row
-            
-            if status in ["Completed", "Enrolled"]:
-                continue
-            
-            prerequisites_met = self._check_prerequisites(
-                prereq_rules, completed_subjects
+
+            # 3. Mapear los resultados (Tuplas) al Modelo Pydantic (AvailableCourseResponse)
+            # La consulta retorna: (subject_code, name, credits, suggested_semester, component)
+            available = []
+            for row in db_rows:
+                course = AvailableCourseResponse(
+                    subject_code=row,       # subject_code
+                    name=row[3],               # name
+                    credits=row[4],            # credits
+                    suggested_semester=row[5], # suggested_semester
+                    status="Available"         # Si la DB lo devuelve, está disponible
+                )
+                available.append(course)
+
+            return AvailableCoursesResponse(
+                userId=user_id,
+                availableCourses=available,
+                count=len(available)
             )
-            
-            if prerequisites_met:
-                available.append(AvailableCourseResponse(
-                    subject_code=subject_code,
-                    name=name,
-                    credits=credits,
-                    suggested_semester=semester,
-                    status=status if status else "Not Taken"
-                ))
-        
-        return AvailableCoursesResponse(
-            userId=user_id,
-            availableCourses=available,
-            count=len(available)
-        )
-    
-    def _check_prerequisites(self, prereq_rules: Any, 
-                            completed_subjects: set) -> bool:
-        """Check if prerequisites are met."""
-        if not prereq_rules:
-            return True
-        
-        # Handle dict format: {"required": ["CODE1", "CODE2"]}
-        if isinstance(prereq_rules, dict):
-            prereqs = prereq_rules.get("required", [])
-            return all(prereq in completed_subjects for prereq in prereqs)
-        
-        # Handle list format: [{"type": "Prerrequisito", "subject_code": "CODE1"}]
-        if isinstance(prereq_rules, list):
-            for rule in prereq_rules:
-                if isinstance(rule, dict):
-                    rule_type = rule.get("type")
-                    req_code = rule.get("subject_code")
-                    if rule_type == "Prerrequisito" and req_code:
-                        if req_code not in completed_subjects:
-                            return False
-            return True
-        
-        return True
+
+        except Exception as e:
+            print(f"Error al obtener materias disponibles: {e}")
+            raise HTTPException(status_code=500, detail=str(e))
