@@ -1,4 +1,4 @@
-name: CI - ISC 
+name: CI - ISC
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
 
       - name: Run Python tests
         working-directory: ./isc-project/Backend/python-backend
-        run:  echo "Test python backend"
+        run: echo "Test python backend"
         # pytest -q
 
       # Frontend tests
@@ -53,7 +53,7 @@ jobs:
 
       - name: Run frontend tests
         working-directory: ./isc-project/Frontend
-        run: echo "Test frontend" 
+        run: echo "Test frontend"
         # npm test --if-present -- --ci --watchAll=false
 
   # Build and push images if tests succeeded
@@ -72,9 +72,6 @@ jobs:
       - name: Define image tag
         id: vars
         run: echo "TAG=$(echo ${GITHUB_SHA::7})" >> $GITHUB_OUTPUT
-
-      - name: Show tag
-        run: echo "Using image tag: ${{ steps.vars.outputs.TAG }}"
 
       # Login to Docker registries
       - name: Log in to Docker Hub
@@ -137,5 +134,3 @@ jobs:
             josorioam404/isc-frontend:latest
             ghcr.io/josorioam404/isc-frontend:${{ steps.vars.outputs.TAG }}
             ghcr.io/josorioam404/isc-frontend:latest
-
-
