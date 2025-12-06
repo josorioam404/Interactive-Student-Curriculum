@@ -1,26 +1,7 @@
 INSERT INTO Program (program_code_sia, name, snies_code, total_credits, faculty)
 VALUES ('2546', 'Ingeniería Industrial', '16940', 168, 'Ingeniería')
 ON CONFLICT (program_code_sia) DO NOTHING;
-WITH ProgramData AS (
-    SELECT program_code_sia FROM Program WHERE program_code_sia = '2546'
-)
-INSERT INTO CurriculumGroup (program_code_sia, component, group_name, required_credits_total, required_credits_obligatory)
-SELECT '2546', 'Foundational', 'Matemáticas', 20, 0 FROM ProgramData UNION ALL
-SELECT '2546', 'Foundational', 'Probabilidad y Estadística', 8, 8 FROM ProgramData UNION ALL
-SELECT '2546', 'Foundational', 'Física', 8, 8 FROM ProgramData UNION ALL
-SELECT '2546', 'Foundational', 'Programación', 6, 6 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Administración y Gestión', 12, 0 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Economía y Finanzas', 13, 3 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Materiales y Procesos', 10, 10 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Sistemas, Modelos, Optimización y Simulación', 12, 6 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Producción y Operaciones', 21, 18 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Sociohumanística', 9, 9 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Sistemas de Información', 3, 0 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Contexto Profesional y Proyectos de Ingeniería', 6, 6 FROM ProgramData UNION ALL
-SELECT '2546', 'Disciplinary', 'Trabajo de Grado', 6, 6 FROM ProgramData UNION ALL
-SELECT '2546', 'Free Elective', 'Profundización', 34, 0 FROM ProgramData
-ON CONFLICT (program_code_sia, component, group_name) DO NOTHING;
-INSERT INTO Subject (subject_code, name, credits) VALUES
+
 -- Fundamentación: Matemáticas (Optativas)
 ('1000004', 'Cálculo Diferencial', 4),
 ('2016377', 'Cálculo Diferencial en una Variable', 4),
@@ -123,111 +104,166 @@ INSERT INTO Subject (subject_code, name, credits) VALUES
 ('2015270', 'Fundamentos de Economía', 3),  
 ('2016039', 'Fundamentos de Finanzas', 4)  
 ON CONFLICT (subject_code) DO NOTHING;
-WITH GroupIDs AS (
+
+WITH InsertedGroups AS (
+    INSERT INTO CurriculumGroup (program_code_sia, component, group_name, required_credits_total, required_credits_obligatory) VALUES
+    ('2546', 'Foundational', 'Matemáticas', 20, 0),
+    ('2546', 'Foundational', 'Probabilidad y Estadística', 8, 8),
+    ('2546', 'Foundational', 'Física', 8, 8),
+    ('2546', 'Foundational', 'Programación', 6, 6),
+    ('2546', 'Disciplinary', 'Administración y Gestión', 12, 0),
+    ('2546', 'Disciplinary', 'Economía y Finanzas', 13, 3),
+    ('2546', 'Disciplinary', 'Materiales y Procesos', 10, 10),
+    ('2546', 'Disciplinary', 'Sistemas, Modelos, Optimización y Simulación', 12, 6),
+    ('2546', 'Disciplinary', 'Producción y Operaciones', 21, 18),
+    ('2546', 'Disciplinary', 'Sociohumanística', 9, 9),
+    ('2546', 'Disciplinary', 'Sistemas de Información', 3, 0),
+    ('2546', 'Disciplinary', 'Contexto Profesional y Proyectos', 6, 6),
+    ('2546', 'Disciplinary', 'Trabajo de Grado', 6, 6),
+    ('2546', 'Free Elective', 'Profundización', 34, 0)
+    RETURNING group_id, group_name, component
+)
+SELECT * FROM InsertedGroups;
+
+WITH GroupMap AS (
     SELECT group_id, group_name, component FROM CurriculumGroup WHERE program_code_sia = '2546'
 )
 INSERT INTO StudyPlan (program_code_sia, subject_code, suggested_semester, component, is_obligatory, group_id, prereq_rules)
-VALUES
--- COMPONENTE DE FUNDAMENTACIÓN (42 Créditos)
--- Matemáticas (20 Créditos Optativos)
-('2546', '1000004', 1, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"name": "Matemáticas Básicas", "type": "Prerrequisito"}]}'),
-('2546', '2016377', 1, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"name": "Matemáticas Básicas", "type": "Prerrequisito"}]}'),
-('2546', '1000005', 2, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000004", "type": "Alternativa"}, {"code": "2016377", "type": "Alternativa"}]}'),
-('2546', '2015556', 2, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000004", "type": "Alternativa"}, {"code": "2016377", "type": "Alternativa"}]}'),
-('2546', '1000003', 2, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000004", "type": "Alternativa"}, {"code": "2016377", "type": "Alternativa"}]}'),
-('2546', '2015555', 2, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000004", "type": "Alternativa"}, {"code": "2016377", "type": "Alternativa"}]}'),
-('2546', '1000006', 3, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000005", "type": "Alternativa"}, {"code": "2015556", "type": "Alternativa"}]}'),
-('2546', '2015162', 3, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000005", "type": "Alternativa"}, {"code": "2015556", "type": "Alternativa"}]}'),
-('2546', '1000007', 3, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000005", "type": "Alternativa"}, {"code": "2015556", "type": "Alternativa"}, {"code": "1000003", "type": "Alternativa"}, {"code": "2015555", "type": "Alternativa"}]}'),
-('2546', '2016342', 3, 'Foundational', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Matemáticas'), '{"subjects": [{"code": "1000005", "type": "Alternativa"}, {"code": "2015556", "type": "Alternativa"}, {"code": "1000003", "type": "Alternativa"}, {"code": "2015555", "type": "Alternativa"}]}'),
+SELECT '2546', T1.subject_code, T1.suggested_semester, T1.component, T1.is_obligatory, gm.group_id, T1.prereq_rules
+FROM (
+    VALUES
+        -- == FUNDAMENTACIÓN: MATEMÁTICAS (Alternativas A y B) ==
+    -- Cálculo Diferencial (4 cr)
+    ('1000004', 1, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000001", "type": "Prerrequisito"}]'::jsonb),
+    ('2016377', 1, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000001", "type": "Prerrequisito"}]'::jsonb),
+    
+    -- Cálculo Integral (4 cr) - Requiere Diferencial (1000004 O 2016377)
+    ('1000005', 2, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2015556', 2, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Probabilidad y Estadística (8 Créditos Obligatorios)
-('2546', '2027877', 3, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Probabilidad y Estadística'), '{"subjects": [{"code": "1000005", "type": "Alternativa"}, {"code": "2015556", "type": "Alternativa"}]}'),
-('2546', '2027878', 4, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Probabilidad y Estadística'), '{"subjects": [{"code": "2027877", "type": "Prerrequisito"}]}'),
+    -- Álgebra Lineal (4 cr) - Requiere Diferencial
+    ('1000003', 2, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2015555', 2, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Física (8 Créditos Obligatorios)
-('2546', '1000019', 2, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Física'), '{"subjects": [{"code": "1000004", "type": "Alternativa"}, {"code": "2016377", "type": "Alternativa"}]}'),
-('2546', '1000017', 3, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Física'), '{"subjects": [{"code": "1000019", "type": "Prerrequisito"}, {"code": "1000005", "type": "Correquisito"}, {"code": "2015556", "type": "Alternativa"}]}'),
+    -- Cálculo Multivariado (4 cr) - Requiere Integral
+    ('1000006', 3, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000005", "type": "Prerrequisito"}, {"subject_code": "2015556", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2015162', 3, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000005", "type": "Prerrequisito"}, {"subject_code": "2015556", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Programación (6 Créditos Obligatorios)
-('2546', '2015734', 1, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Programación'), '{"subjects": []}'),
-('2546', '2016375', 2, 'Foundational', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Programación'), '{"subjects": [{"code": "2015734", "type": "Prerrequisito"}]}'),
+    -- Ecuaciones Diferenciales (4 cr) - Requiere Integral Y Álgebra Lineal
+    ('1000007', 3, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000005", "type": "Prerrequisito"}, {"subject_code": "2015556", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "1000003", "type": "Prerrequisito"}, {"subject_code": "2015555", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2016342', 3, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000005", "type": "Prerrequisito"}, {"subject_code": "2015556", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "1000003", "type": "Prerrequisito"}, {"subject_code": "2015555", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- COMPONENTE DISCIPLINAR O PROFESIONAL (92 Créditos)
--- Contexto Profesional y Proyectos de Ingeniería (6 Obligatorios)
-('2546', '2026805', 1, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Contexto Profesional y Proyectos de Ingeniería'), '{"subjects": []}'),
-('2546', '2026488', 2, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Contexto Profesional y Proyectos de Ingeniería'), '{"subjects": [{"code": "1000004", "type": "Alternativa"}, {"code": "2016377", "type": "Alternativa"}, {"code": "2026805", "type": "Prerrequisito"}, {"code": "2016375", "type": "Prerrequisito"}]}'),
+    -- == PROBABILIDAD Y ESTADÍSTICA ==
+    -- Probabilidad Fundamental - Requiere Integral
+    ('2027877', 3, 'Foundational', TRUE, 'Probabilidad y Estadística', '[{"subject_code": "1000005", "type": "Prerrequisito"}, {"subject_code": "2015556", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    -- Inferencia - Requiere Probabilidad
+    ('2027878', 4, 'Foundational', TRUE, 'Probabilidad y Estadística', '[{"subject_code": "2027877", "type": "Prerrequisito"}]'::jsonb),
 
--- Sociohumanística (9 Obligatorios)
-('2546', '2016615', 2, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sociohumanística'), '{"subjects": [{"code": "2026805", "type": "Prerrequisito"}]}'),
-('2546', '2015811', 3, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sociohumanística'), '{"subjects": []}'),
-('2546', '2016616', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sociohumanística'), '{"subjects": [{"code": "2016615", "type": "Prerrequisito"}, {"code": "2027878", "type": "Prerrequisito"}]}'),
+    -- == FÍSICA ==
+    -- Mecánica - Requiere Diferencial
+    ('1000019', 2, 'Foundational', TRUE, 'Física', '[{"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    -- Electricidad y Magnetismo - Requiere Mecánica e Integral
+    ('1000017', 3, 'Foundational', TRUE, 'Física', '[{"subject_code": "1000019", "type": "Prerrequisito"}, {"subject_code": "1000005", "type": "Prerrequisito"}, {"subject_code": "2015556", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Materiales y Procesos (10 Obligatorios)
-('2546', '2025993', 3, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Materiales y Procesos'), '{"subjects": [{"code": "1000019", "type": "Prerrequisito"}]}'),
-('2546', '2016619', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Materiales y Procesos'), '{"subjects": [{"code": "2025993", "type": "Prerrequisito"}]}'),
-('2546', '2016618', 4, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Materiales y Procesos'), '{"subjects": [{"code": "2025993", "type": "Prerrequisito"}]}'),
+    -- == PROGRAMACIÓN ==
+    ('2015734', 1, 'Foundational', TRUE, 'Programación', NULL),
+    ('2016375', 2, 'Foundational', TRUE, 'Programación', '[{"subject_code": "2015734", "type": "Prerrequisito"}]'::jsonb),
 
--- Economía y Finanzas - Obligatoria (3 Créditos)
-('2546', '2025986', 5, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Economía y Finanzas'), '{"subjects": [{"code": "1000006", "type": "Alternativa"}, {"code": "2015162", "type": "Alternativa"}, {"code": "2016610", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016038", "type": "Alternativa", "type_2": "Correquisito"}]}'), 
+    -- == CONTEXTO PROFESIONAL ==
+    ('2026805', 1, 'Disciplinary', TRUE, 'Contexto Profesional', NULL),
+    -- Taller de Herramientas: Requiere Introducción a II, POO y Diferencial
+    ('2026488', 2, 'Disciplinary', TRUE, 'Contexto Profesional', '[{"subject_code": "2026805", "type": "Prerrequisito"}, {"subject_code": "2016375", "type": "Prerrequisito"}, {"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Producción y Operaciones - Obligatorias (18 Créditos)
-('2546', '2016609', 5, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "1000017", "type": "Prerrequisito"}]}'),
-('2546', '2016613', 6, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "2025971", "type": "Alternativa"}, {"code": "2015173", "type": "Alternativa"}, {"code": "2016618", "type": "Prerrequisito"}]}'),
-('2546', '2016614', 7, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "2016613", "type": "Prerrequisito"}, {"code": "2025987", "type": "Prerrequisito"}]}'),
-('2546', '2016612', 8, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "2016609", "type": "Prerrequisito"}, {"code": "2025982", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016053", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016614", "type": "Prerrequisito"}]}'),
-('2546', '2016605', 8, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "2025988", "type": "Prerrequisito"}]}'),
+    -- == ECONOMÍA Y FINANZAS ==
+    -- Economía General: Requiere Diferencial e Introducción
+    ('2016592', 3, 'Disciplinary', FALSE, 'Economía y Finanzas', '[{"subject_code": "2026805", "type": "Prerrequisito"}, {"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    -- Microeconomía I (Alternativa de Economía General): Mismos requisitos
+    ('2016017', 3, 'Disciplinary', FALSE, 'Economía y Finanzas', '[{"subject_code": "2026805", "type": "Prerrequisito"}, {"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    
+    -- Sistemas de Costos: Requiere Economía y Taller Herramientas
+    ('2016610', 4, 'Disciplinary', FALSE, 'Economía y Finanzas', '[{"subject_code": "2026488", "type": "Prerrequisito"}, {"subject_code": "2016592", "type": "Prerrequisito"}, {"subject_code": "2016017", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    -- Contabilidad de Gestión (Alternativa de Costos)
+    ('2016038', 4, 'Disciplinary', FALSE, 'Economía y Finanzas', '[{"subject_code": "2026488", "type": "Prerrequisito"}, {"subject_code": "2016592", "type": "Prerrequisito"}, {"subject_code": "2016017", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Sistemas, Modelos, Optimización y Simulación - Obligatorias (6 Créditos)
-('2546', '2025987', 6, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas, Modelos, Optimización y Simulación'), '{"subjects": [{"code": "2025971", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2015173", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2025970", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2015177", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2027878", "type": "Correquisito"}]}'),
-('2546', '2025988', 7, 'Disciplinary', TRUE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas, Modelos, Optimización y Simulación'), '{"subjects": [{"code": "2025987", "type": "Prerrequisito"}]}'),
+    -- Ing. Económica: Requiere Multivariado y Costos
+    ('2025986', 5, 'Disciplinary', TRUE, 'Economía y Finanzas', '[{"subject_code": "1000006", "type": "Prerrequisito"}, {"subject_code": "2015162", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2016610", "type": "Prerrequisito"}, {"subject_code": "2016038", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Optativas Disciplinares: Administración y Gestión (12 Créditos Optativos)
-('2546', '2026551', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2016615", "type": "Prerrequisito"}, {"code": "2016592", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016017", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2016007', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2016615", "type": "Prerrequisito"}, {"code": "2016592", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016017", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2015702', 6, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2025986", "type": "Prerrequisito"}]}'),
-('2546', '2016028', 6, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2025986", "type": "Prerrequisito"}]}'),
-('2546', '2016600', 7, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2026551", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016007", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2025982", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016053", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2016599', 7, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2026551", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016007", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2025982", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016053", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2015701', 8, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2016609", "type": "Prerrequisito"}, {"code": "2026551", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016007", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2016111', 8, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Administración y Gestión'), '{"subjects": [{"code": "2016609", "type": "Prerrequisito"}, {"code": "2026551", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016007", "type": "Alternativa", "type_2": "Correquisito"}]}'),
+    -- Finanzas: Requiere Ing. Económica
+    ('2016741', 6, 'Disciplinary', FALSE, 'Economía y Finanzas', '[{"subject_code": "2025986", "type": "Prerrequisito"}]'::jsonb),
+    ('2016037', 6, 'Disciplinary', FALSE, 'Economía y Finanzas', '[{"subject_code": "2025986", "type": "Prerrequisito"}]'::jsonb),
 
--- Optativas Disciplinares: Economía y Finanzas (10 Créditos Optativos)
-('2546', '2016592', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Economía y Finanzas'), '{"subjects": [{"code": "1000004", "type": "Alternativa"}, {"code": "2016377", "type": "Alternativa"}, {"code": "2026805", "type": "Correquisito"}]}'),
-('2546', '2016017', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Economía y Finanzas'), '{"subjects": [{"code": "2016377", "type": "Prerrequisito"}, {"code": "2026805", "type": "Correquisito"}]}'),
-('2546', '2016610', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Economía y Finanzas'), '{"subjects": [{"code": "2016592", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016017", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2026488", "type": "Correquisito"}]}'),
-('2546', '2016038', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Economía y Finanzas'), '{"subjects": [{"code": "2016592", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016017", "type": "Alternativa", "type_2": "Prerrequisito"}, {"name": "Fundamentos de contabilidad Financiera", "type": "Prerrequisito"}, {"code": "2026488", "type": "Correquisito"}]}'),
-('2546', '2016741', 6, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Economía y Finanzas'), '{"subjects": [{"code": "2025986", "type": "Prerrequisito"}]}'),
-('2546', '2016037', 6, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Economía y Finanzas'), '{"subjects": [{"code": "2025986", "type": "Prerrequisito"}, {"name": "Fundamentos de Finanzas", "type": "Prerrequisito"}]}'),
+    -- == MATERIALES ==
+    ('2025993', 3, 'Disciplinary', TRUE, 'Materiales y Procesos', '[{"subject_code": "1000019", "type": "Prerrequisito"}]'::jsonb),
+    ('2016618', 4, 'Disciplinary', TRUE, 'Materiales y Procesos', '[{"subject_code": "2025993", "type": "Prerrequisito"}]'::jsonb),
+    ('2016619', 4, 'Disciplinary', TRUE, 'Materiales y Procesos', '[{"subject_code": "2025993", "type": "Prerrequisito"}]'::jsonb),
 
--- Optativas Disciplinares: Sistemas, Modelos, Optimización y Simulación (6 Créditos Optativos)
-('2546', '2025971', 5, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas, Modelos, Optimización y Simulación'), '{"subjects": [{"code": "1000006", "type": "Alternativa"}, {"code": "2015162", "type": "Alternativa"}, {"code": "1000003", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2015555", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2015173', 5, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas, Modelos, Optimización y Simulación'), '{"subjects": [{"code": "1000006", "type": "Alternativa"}, {"code": "2015162", "type": "Alternativa"}, {"code": "1000003", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2015555", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2025970', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas, Modelos, Optimización y Simulación'), '{"subjects": [{"code": "1000007", "type": "Alternativa"}, {"code": "2016342", "type": "Alternativa"}, {"code": "1000006", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2015162", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2027877", "type": "Correquisito"}, {"code": "2026488", "type": "Correquisito"}]}'),
-('2546', '2015177', 4, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas, Modelos, Optimización y Simulación'), '{"subjects": [{"code": "1000007", "type": "Alternativa"}, {"code": "2016342", "type": "Alternativa"}, {"code": "1000006", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2015162", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2027877", "type": "Correquisito"}, {"code": "2026488", "type": "Correquisito"}]}'),
+    -- == SISTEMAS Y OPTIMIZACIÓN ==
+    -- Optimización: Requiere Multivariado y Lineal
+    ('2025971', 5, 'Disciplinary', FALSE, 'Sistemas, Modelos, Optimización', '[{"subject_code": "1000006", "type": "Prerrequisito"}, {"subject_code": "2015162", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "1000003", "type": "Prerrequisito"}, {"subject_code": "2015555", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2015173', 5, 'Disciplinary', FALSE, 'Sistemas, Modelos, Optimización', '[{"subject_code": "1000006", "type": "Prerrequisito"}, {"subject_code": "2015162", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "1000003", "type": "Prerrequisito"}, {"subject_code": "2015555", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
--- Optativas Disciplinares: Producción y Operaciones (3 Créditos Optativos)
-('2546', '2016589', 5, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "2027878", "type": "Prerrequisito"}, {"code": "2026551", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016007", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2016316', 5, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "2027878", "type": "Prerrequisito"}, {"code": "2026551", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016007", "type": "Alternativa", "type_2": "Correquisito"}]}'),
-('2546', '2016317', 5, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Producción y Operaciones'), '{"subjects": [{"code": "2027878", "type": "Prerrequisito"}, {"code": "2026551", "type": "Alternativa", "type_2": "Correquisito"}, {"code": "2016007", "type": "Alternativa", "type_2": "Correquisito"}]}'),
+    -- Modelos y Simulación: Requiere Ecuaciones, Multivariado y Probabilidad
+    ('2025970', 4, 'Disciplinary', FALSE, 'Sistemas, Modelos, Optimización', '[{"subject_code": "1000007", "type": "Prerrequisito"}, {"subject_code": "2016342", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027877", "type": "Prerrequisito"}]'::jsonb),
+    ('2015177', 4, 'Disciplinary', FALSE, 'Sistemas, Modelos, Optimización', '[{"subject_code": "1000007", "type": "Prerrequisito"}, {"subject_code": "2016342", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027877", "type": "Prerrequisito"}]'::jsonb),
 
--- Optativas Disciplinares: Sistemas de Información (3 Créditos Optativos)
-('2546', '2025982', 7, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas de Información'), '{"subjects": [{"code": "2015702", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016028", "type": "Alternativa", "type_2": "Prerrequisito"}]}'),
-('2546', '2016053', 7, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Sistemas de Información'), '{"subjects": [{"code": "2015702", "type": "Alternativa", "type_2": "Prerrequisito"}, {"code": "2016028", "type": "Alternativa", "type_2": "Prerrequisito"}]}'),
+    -- Modelos Estocásticos: Requiere Optimización, Modelos e Inferencia
+    ('2025987', 6, 'Disciplinary', TRUE, 'Sistemas, Modelos, Optimización', '[{"subject_code": "2025971", "type": "Prerrequisito"}, {"subject_code": "2015173", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2025970", "type": "Prerrequisito"}, {"subject_code": "2015177", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027878", "type": "Prerrequisito"}]'::jsonb),
+    
+    ('2025988', 7, 'Disciplinary', TRUE, 'Sistemas, Modelos, Optimización', '[{"subject_code": "2025987", "type": "Prerrequisito"}]'::jsonb),
 
--- Trabajo de Grado (6 Obligatorios/Optativos) - Requiere 70 créditos Disciplinares aprobados [38, 39]
-('2546', '2025990', 9, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Trabajo de Grado'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 70}}'),
-('2546', '2025989', 9, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Trabajo de Grado'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 70}}'),
-('2546', '2015321', 9, 'Disciplinary', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Trabajo de Grado'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 70}}'),
+    -- == PRODUCCIÓN ==
+    ('2016609', 5, 'Disciplinary', TRUE, 'Producción y Operaciones', '[{"subject_code": "1000017", "type": "Prerrequisito"}]'::jsonb),
+    -- Taller Ergonomía: Requiere Optimización y Procesos Metalmecánicos
+    ('2016613', 6, 'Disciplinary', TRUE, 'Producción y Operaciones', '[{"subject_code": "2016618", "type": "Prerrequisito"}, {"subject_code": "2025971", "type": "Prerrequisito"}, {"subject_code": "2015173", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    
+    -- Taller Ingeniería Producción: Requiere Ergonomía y Estocásticos
+    ('2016614', 7, 'Disciplinary', TRUE, 'Producción y Operaciones', '[{"subject_code": "2016613", "type": "Prerrequisito"}, {"subject_code": "2025987", "type": "Prerrequisito"}]'::jsonb),
+    
+    ('2016612', 8, 'Disciplinary', TRUE, 'Producción y Operaciones', '[{"subject_code": "2016609", "type": "Prerrequisito"}, {"subject_code": "2016614", "type": "Prerrequisito"}]'::jsonb),
+    ('2016605', 8, 'Disciplinary', TRUE, 'Producción y Operaciones', '[{"subject_code": "2025988", "type": "Prerrequisito"}]'::jsonb),
 
--- COMPONENTE DE LIBRE ELECCIÓN (34 Créditos Optativos)
--- Profundización (0 Créditos Obligatorios)
-('2546', '2024045', 7, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 40}, "subjects": [{"code": "2015702", "type": "Prerrequisito"}]}'),
--- Prácticas - Requieren 45 créditos Disciplinares aprobados 
-('2546', '2016762', 8, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'),
-('2546', '2016763', 8, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'),
-('2546', '2016764', 8, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'),
-('2546', '1000070', 8, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'),
-('2546', '1000071', 8, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'),
-('2546', '1000072', 8, 'Free Elective', FALSE, (SELECT group_id FROM GroupIDs WHERE group_name = 'Profundización'), '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}');
+    -- Control de Calidad: Requiere Inferencia y Administración
+    ('2016589', 5, 'Disciplinary', FALSE, 'Producción y Operaciones', '[{"subject_code": "2027878", "type": "Prerrequisito"}, {"subject_code": "2026551", "type": "Prerrequisito"}, {"subject_code": "2016007", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2016316', 5, 'Disciplinary', FALSE, 'Producción y Operaciones', '[{"subject_code": "2027878", "type": "Prerrequisito"}, {"subject_code": "2026551", "type": "Prerrequisito"}, {"subject_code": "2016007", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2016317', 5, 'Disciplinary', FALSE, 'Producción y Operaciones', '[{"subject_code": "2027878", "type": "Prerrequisito"}, {"subject_code": "2026551", "type": "Prerrequisito"}, {"subject_code": "2016007", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+
+    -- == ADMINISTRACIÓN Y GESTIÓN ==
+    ('2026551', 4, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2016615", "type": "Prerrequisito"}, {"subject_code": "2016592", "type": "Prerrequisito"}, {"subject_code": "2016017", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2016007', 4, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2016615", "type": "Prerrequisito"}, {"subject_code": "2016592", "type": "Prerrequisito"}, {"subject_code": "2016017", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    
+    ('2015702', 6, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2025986", "type": "Prerrequisito"}]'::jsonb),
+    ('2016028', 6, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2025986", "type": "Prerrequisito"}]'::jsonb),
+    
+    ('2016600', 7, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2026551", "type": "Prerrequisito"}, {"subject_code": "2016007", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2016599', 7, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2026551", "type": "Prerrequisito"}, {"subject_code": "2016007", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+
+    ('2015701', 8, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2016609", "type": "Prerrequisito"}]'::jsonb),
+    ('2016111', 8, 'Disciplinary', FALSE, 'Administración y Gestión', '[{"subject_code": "2016609", "type": "Prerrequisito"}]'::jsonb),
+
+    -- == SOCIOHUMANÍSTICA ==
+    ('2016615', 2, 'Disciplinary', TRUE, 'Sociohumanística', '[{"subject_code": "2026805", "type": "Prerrequisito"}]'::jsonb),
+    ('2016616', 4, 'Disciplinary', TRUE, 'Sociohumanística', '[{"subject_code": "2016615", "type": "Prerrequisito"}, {"subject_code": "2027878", "type": "Prerrequisito"}]'::jsonb),
+
+    -- == SISTEMAS DE INFORMACIÓN ==
+    ('2025982', 7, 'Disciplinary', FALSE, 'Sistemas de Información', '[{"subject_code": "2015702", "type": "Prerrequisito"}, {"subject_code": "2016028", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+    ('2016053', 7, 'Disciplinary', FALSE, 'Sistemas de Información', '[{"subject_code": "2015702", "type": "Prerrequisito"}, {"subject_code": "2016028", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
+
+    -- == TRABAJO DE GRADO ==
+    ('2025990', 9, 'Disciplinary', TRUE, 'Trabajo de Grado', '[{"credit_rule": 70, "component": "Disciplinary"}]'::jsonb),
+    ('2025989', 9, 'Disciplinary', TRUE, 'Trabajo de Grado', '[{"credit_rule": 70, "component": "Disciplinary"}]'::jsonb),
+    ('2015321', 9, 'Disciplinary', TRUE, 'Trabajo de Grado', '[{"credit_rule": 70, "component": "Disciplinary"}]'::jsonb)
+    -- Profundización (0 Créditos Obligatorios)
+    ('2024045', 7, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 40}, "subjects": [{"code": "2015702", "type": "Prerrequisito"}]}'::jsonb),
+
+    -- Prácticas Estudiantiles (Requieren 45 créditos disciplinares aprobados)
+    ('2016762', 8, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'::jsonb),
+    ('2016763', 8, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'::jsonb),
+    ('2016764', 8, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'::jsonb),
+
+    -- Prácticas Colombia (Requieren 45 créditos disciplinares aprobados)
+    ('1000070', 8, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'::jsonb),
+    ('1000071', 8, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'::jsonb),
+    ('1000072', 8, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 45}}'::jsonb)
+) AS T1(subject_code, suggested_semester, component, is_obligatory, group_name, prereq_rules)
+JOIN GroupMap gm ON T1.group_name = gm.group_name AND T1.component = gm.component;   
 
