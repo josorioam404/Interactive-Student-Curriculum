@@ -172,37 +172,42 @@ class StudentService:
         )
     
     def _check_prerequisites(self, prereq_rules: Any, completed_subjects: set) -> bool:
-        """Check if prerequisites are met with mandatory / alternative rule logic."""
+        """
+        Correct prerequisite evaluator:
+        - If any rule has condition=Alternativa → treat full group as OR logic
+        - Otherwise treat as AND logic
+        """
 
         if not prereq_rules:
             return True
 
-        mandatory = []
-        alternatives = []
+        # normalize dict rules
+        if isinstance(prereq_rules, dict):
+            prereq_rules = prereq_rules.get("required", [])
+
+        # Extract codes
+        prereq_codes = []
+        has_alternative = False
 
         for rule in prereq_rules:
             if not isinstance(rule, dict):
                 continue
 
-            req_code = rule.get("subject_code")
-            
-            # leemos condition o type según como venga del JSON
+            code = rule.get("subject_code")
+            if not code:
+                continue
+
+            prereq_codes.append(code)
+
             cond = rule.get("condition") or rule.get("type")
 
-            # Si no especifica o no es alternativa → obligatorio
-            if cond is None or cond.lower() != "alternativa":
-                mandatory.append(req_code)
-            else:
-                alternatives.append(req_code)
+            # detect if any rule belongs to an alternative group
+            if cond and cond.lower() == "alternativa":
+                has_alternative = True
 
-        # 1️⃣ Validar obligatorios (ALL)
-        for code in mandatory:
-            if code and code not in completed_subjects:
-                return False
+        # ⚡ CASE 1: alternative group → OR logic
+        if has_alternative:
+            return any(code in completed_subjects for code in prereq_codes)
 
-        # 2️⃣ Validar alternativas (ANY)
-        if alternatives:
-            if not any(code in completed_subjects for code in alternatives):
-                return False
-
-        return True
+        # ⚡ CASE 2: normal group → AND logic
+        return all(code in completed_subjects for code in prereq_codes)
