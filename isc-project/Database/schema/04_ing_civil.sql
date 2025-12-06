@@ -226,7 +226,7 @@ FROM (
     ('2015973', 8, 'Disciplinary', TRUE, 'Saneamiento Básico', '[{"subject_code": "1000011", "type": "Prerrequisito"}, {"subject_code": "2015938", "type": "Prerrequisito"}]'::jsonb),
 
     -- == DISCIPLINAR: CONSTRUCCIÓN ==
-    ('2015955', 7, 'Disciplinary', TRUE, 'Construcción', '[{"credit_rule": 87, "component": "Disciplinary"}]'::jsonb), -- Ajustado a 87 según fuente SQL original
+    ('2015955', 7, 'Disciplinary', TRUE, 'Construcción', '[{"credit_rule": 67, "component": "Disciplinary"}]'::jsonb),
 
     -- == DISCIPLINAR: CONSTRUCCIÓN DE OBRAS CIVILES (Optativas) ==
     ('2015943', 8, 'Disciplinary', FALSE, 'Construcción de Obras Civiles', '[{"subject_code": "2015955", "type": "Prerrequisito"}]'::jsonb),
