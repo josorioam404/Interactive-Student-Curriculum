@@ -17,19 +17,39 @@ class StudentService:
         self.curriculum_repo = CurriculumRepository()
     
     def get_student_curriculum(self, user_id: int) -> StudentCurriculumResponse:
-        """Get complete curriculum for student's program."""
+        """
+        Get complete curriculum for student's program,
+        filtering subjects based on prerequisite fulfillment.
+        """
+
         user_result = self.student_repo.get_user_program(user_id)
         if not user_result or not user_result[0]:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail="User has not selected a program"
             )
-        
+
         program_code, user_name = user_result
+
+        # Obtener materias del plan con progreso
         rows = self.student_repo.get_curriculum_with_progress(user_id, program_code)
-        
+
+        # Obtener materias ya completadas
+        completed_subjects = self.student_repo.get_completed_subjects(user_id)
+
         curriculum_items = []
+
         for row in rows:
+            subject_code = row[1]
+            prereq_rules = row[5]
+
+            # 🔥 Nuevo chequeo robusto (AND / OR obligatorio)
+            allowed = self._check_prerequisites(prereq_rules, completed_subjects)
+
+            if not allowed:
+                # ❌ materia bloqueada: no se incluye
+                continue
+
             item = CurriculumItemResponse(
                 id=row[0],
                 subject_code=row[1],
@@ -49,13 +69,14 @@ class StudentService:
                 )
             )
             curriculum_items.append(item)
-        
+
         return StudentCurriculumResponse(
             userId=user_id,
             userName=user_name,
             programCode=program_code,
             curriculum=curriculum_items
         )
+
     
     def get_progress_summary(self, user_id: int) -> ProgressSummaryResponse:
         """Get summary statistics for student progress."""
@@ -150,26 +171,38 @@ class StudentService:
             count=len(available)
         )
     
-    def _check_prerequisites(self, prereq_rules: Any, 
-                            completed_subjects: set) -> bool:
-        """Check if prerequisites are met."""
+    def _check_prerequisites(self, prereq_rules: Any, completed_subjects: set) -> bool:
+        """Check if prerequisites are met with mandatory / alternative rule logic."""
+
         if not prereq_rules:
             return True
-        
-        # Handle dict format: {"required": ["CODE1", "CODE2"]}
-        if isinstance(prereq_rules, dict):
-            prereqs = prereq_rules.get("required", [])
-            return all(prereq in completed_subjects for prereq in prereqs)
-        
-        # Handle list format: [{"type": "Prerrequisito", "subject_code": "CODE1"}]
-        if isinstance(prereq_rules, list):
-            for rule in prereq_rules:
-                if isinstance(rule, dict):
-                    rule_type = rule.get("type")
-                    req_code = rule.get("subject_code")
-                    if rule_type == "Prerrequisito" and req_code:
-                        if req_code not in completed_subjects:
-                            return False
-            return True
-        
+
+        mandatory = []
+        alternatives = []
+
+        for rule in prereq_rules:
+            if not isinstance(rule, dict):
+                continue
+
+            req_code = rule.get("subject_code")
+            
+            # leemos condition o type según como venga del JSON
+            cond = rule.get("condition") or rule.get("type")
+
+            # Si no especifica o no es alternativa → obligatorio
+            if cond is None or cond.lower() != "alternativa":
+                mandatory.append(req_code)
+            else:
+                alternatives.append(req_code)
+
+        # 1️⃣ Validar obligatorios (ALL)
+        for code in mandatory:
+            if code and code not in completed_subjects:
+                return False
+
+        # 2️⃣ Validar alternativas (ANY)
+        if alternatives:
+            if not any(code in completed_subjects for code in alternatives):
+                return False
+
         return True
