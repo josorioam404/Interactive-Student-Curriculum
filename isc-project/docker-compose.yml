@@ -34,7 +34,7 @@ services:
   frontend:
     image: josorioam404/isc-frontend:${IMAGE_TAG:-latest}
     ports:
-      - "80:80"
+      - "5173:80"
     networks:
       - isc-net
     depends_on:
