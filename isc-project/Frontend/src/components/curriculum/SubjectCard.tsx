@@ -2,46 +2,36 @@ import React from 'react';
 import type { StudyPlanItem, SubjectStatus } from '../../types';
 import './SubjectCard.css';
 
-// Define las propiedades requeridas para el componente de tarjeta de asignatura
 interface SubjectCardProps {
   data: StudyPlanItem;
   status: SubjectStatus | string;
   onClick: () => void;
 }
 
-/**
- * Normaliza distintos valores de estado (casos y variantes del backend)
- */
-const mapStatusToClass = (rawStatus?: SubjectStatus | string): 'approved' | 'enrolled' | 'planned' | 'pending' | 'error' => {
+const mapStatusToClass = (rawStatus?: SubjectStatus | string): 'approved' | 'enrolled' | 'planned' | 'pending' | 'error' | 'failed' => {
   if (!rawStatus) return 'pending';
   const s = String(rawStatus).trim().toLowerCase();
-  // Aprobada
-  if (['completed', 'complete', 'approved', 'aprobada', 'aprobado', 'passed', 'passed_course', 'done'].includes(s)) {
-    return 'approved';
-  }
-  // Inscrita
-  if (['enrolled', 'inscrito', 'inscrita', 'registration', 'registered'].includes(s)) {
-    return 'enrolled';
-  }
-  // Planeada
-  if (['planned', 'planeada', 'planeado', 'plan', 'to_plan'].includes(s)) {
-    return 'planned';
-  }
-  // Error / alerta
-  if (['error', 'errored', 'failed', 'rejected', 'blocked'].includes(s)) {
-    return 'error';
-  }
-  // Pendiente (por defecto)
+  
+  if (['completed', 'complete', 'approved', 'aprobada', 'aprobado'].includes(s)) return 'approved';
+  if (['enrolled', 'inscrito', 'inscrita'].includes(s)) return 'enrolled';
+  if (['planned', 'planeada', 'planeado'].includes(s)) return 'planned';
+  
+  // Nuevo estado específico para Reprobada
+  if (['failed', 'reprobada', 'reprobado', 'loss'].includes(s)) return 'failed';
+  
+  if (['error', 'errored', 'rejected', 'blocked'].includes(s)) return 'error';
+  
   return 'pending';
 };
 
 export const SubjectCard: React.FC<SubjectCardProps> = ({ data, status, onClick }) => {
-  // Desestructura los datos y asigna valores por defecto si el objeto 'subject' no está definido
-  const { subject_code, subject } = data;
+  const { subject_code, subject, progress } = data;
   const name = subject?.name || "Asignatura Desconocida";
   const credits = subject?.credits || 0;
+  
+  // Si la materia fue reprobada, mostramos la nota en rojo en la tarjeta
+  const showGrade = progress?.status === 'Failed' && progress?.final_grade !== undefined;
 
-  // Normaliza el status antes de usarlo en la clase CSS
   const normalizedStatus = mapStatusToClass(status);
 
   return (
@@ -52,8 +42,9 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({ data, status, onClick 
     >
       <div className="card-header-sc">
         <span className="subject-code">{subject_code}</span>
-        {/* Muestra un indicador visual si existe un error de prerrequisitos */}
         {normalizedStatus === 'error' && <span className="warning-icon">⚠️</span>}
+        {/* Icono visual si reprobó */}
+        {normalizedStatus === 'failed' && <span style={{fontSize:'0.8rem'}}>✕</span>}
       </div>
       
       <div className="card-body-sc">
@@ -61,9 +52,12 @@ export const SubjectCard: React.FC<SubjectCardProps> = ({ data, status, onClick 
       </div>
 
       <div className="card-footer-sc">
-        <span className="credits-badge">{credits} Créditos</span>
+        {showGrade ? (
+            <span className="credits-badge grade-badge-fail">Nota: {progress?.final_grade}</span>
+        ) : (
+            <span className="credits-badge">{credits} Créditos</span>
+        )}
       </div>
     </div>
   );
 };
-

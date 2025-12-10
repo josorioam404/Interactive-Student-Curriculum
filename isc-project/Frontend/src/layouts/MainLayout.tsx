@@ -1,50 +1,59 @@
-//MainLayout.tsx
-
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, BookOpen, LayoutDashboard, Settings, LogOut, UserCircle, ChevronLeft, ChevronRight, Mail, User } from 'lucide-react';
+import { Menu, X, BookOpen, LayoutDashboard, Settings, LogOut, UserCircle, ChevronLeft, ChevronRight, Mail, User, GraduationCap, Edit3 } from 'lucide-react'; 
 import logoUnal from '../assets/logo_unal.png';
 import './MainLayout.css';
 
-// Define la estructura de los datos del usuario para tipado
+// Interfaz actualizada para incluir datos del programa
 interface UserData {
   name: string;
   role: string;
   dept: string;
-  email?: string; // Campo opcional (los invitados pueden no tenerlo en el objeto base)
+  email?: string;
+  programCode?: string; 
+  programName?: string;
 }
 
 export const MainLayout: React.FC = () => {
-  // Controla la visibilidad de los menús
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  
-  // Estado para el Modal de Perfil
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   
-  // Inicializa el estado del usuario leyendo directamente del almacenamiento local
   const [user, setUser] = useState<UserData | null>(() => {
     const storedUser = localStorage.getItem('user');
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  // Redirige al login si no existe una sesión de usuario activa
+  // --- PROTECCIÓN DE RUTA: ASOCIACIÓN DE CARRERA ---
   useEffect(() => {
     if (!user) {
       navigate('/login');
+      return;
     }
-  }, [user, navigate]);
 
-  // Gestiona el cierre de sesión limpiando el almacenamiento y el estado
+    // Si es estudiante (no guest, no admin) y NO tiene programa, forzar selección
+    if (user.role !== 'guest' && user.role !== 'admin' && !user.programCode) {
+      // Evitar bucle infinito si ya está en la página de selección
+      if (location.pathname !== '/select-program') {
+        navigate('/select-program');
+      }
+    }
+  }, [user, navigate, location.pathname]);
+
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userId');
     setUser(null);
     navigate('/login');
+  };
+
+  const handleChangeProgram = () => {
+    setIsProfileOpen(false);
+    navigate('/select-program');
   };
 
   const menuItems = [
@@ -63,7 +72,6 @@ export const MainLayout: React.FC = () => {
       
       <header className="main-header">
         <div className="header-left">
-          {/* Botón de menú visible solo en dispositivos móviles */}
           <button className="menu-btn-mobile" onClick={() => setSidebarOpen(!isSidebarOpen)}>
             {isSidebarOpen ? <X color="white" /> : <Menu color="white" />}
           </button>
@@ -83,7 +91,6 @@ export const MainLayout: React.FC = () => {
         </div>
 
         <div className="header-right">
-          {/* Se añade onClick para abrir el modal de perfil */}
           <div 
             className="user-profile-header" 
             onClick={() => setIsProfileOpen(true)}
@@ -105,9 +112,7 @@ export const MainLayout: React.FC = () => {
       </header>
 
       <div className="layout-body">
-        {/* Barra Lateral */}
         <aside className={`sidebar ${isSidebarOpen ? 'open' : ''} ${isCollapsed ? 'collapsed' : ''}`}>
-          
           <button 
             className="sidebar-toggle-btn" 
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -150,7 +155,6 @@ export const MainLayout: React.FC = () => {
           </nav>
         </aside>
 
-        {/* Contenido Principal */}
         <main className="main-content">
            <div className="page-scroll-container">
               <div className="page-content-wrapper">
@@ -176,7 +180,7 @@ export const MainLayout: React.FC = () => {
             
             <div className="profile-modal-body">
               <div className="profile-avatar-large">
-                <UserCircle size={64} color="var(--color-unal-gray)" />
+                <UserCircle size={64} color="var(--unal-gray)" />
               </div>
               
               <div className="profile-info-group">
@@ -195,12 +199,45 @@ export const MainLayout: React.FC = () => {
                 </div>
               </div>
 
+              {/* Nueva sección: Programa Académico */}
+              <div className="profile-info-group">
+                <label>Programa Académico</label>
+                <div className="profile-value">
+                  <GraduationCap size={16} />
+                  <span>{user.programName || user.programCode || 'Sin Asignar'}</span>
+                </div>
+              </div>
+
               <div className="profile-info-group">
                 <label>Rol</label>
                 <span className={`role-badge ${user.role}`}>
                   {user.role === 'admin' ? 'Administrador' : user.role === 'guest' ? 'Invitado' : 'Estudiante'}
                 </span>
               </div>
+
+              {/* Botón para cambiar programa */}
+              <button 
+                onClick={handleChangeProgram}
+                style={{
+                    marginTop: '10px',
+                    padding: '8px 16px',
+                    backgroundColor: 'white',
+                    border: '1px solid var(--unal-red)',
+                    color: 'var(--unal-red)',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    width: '100%',
+                    justifyContent: 'center'
+                }}
+              >
+                <Edit3 size={16}/> Cambiar Carrera
+              </button>
+
             </div>
 
             <div className="profile-modal-footer">
