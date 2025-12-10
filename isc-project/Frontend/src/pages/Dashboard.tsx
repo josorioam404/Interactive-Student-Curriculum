@@ -1,38 +1,44 @@
-//Dashboard.tsx
-
-import React, { useState, useEffect } from 'react';
-import { Search, Filter } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Search, Filter, Grid, User, Plus } from 'lucide-react';
 import { CurriculumGrid } from '../components/curriculum/CurriculumGrid';
 import { SubjectDetailModal } from '../components/curriculum/SubjectDetailModal';
-import { mockCurriculum } from '../data/mockCurriculum'; 
+import { AddSubjectModal } from '../components/curriculum/AddSubjectModal';
+import { mockCurriculum } from '../data/mockCurriculum';
+import { allCurricula } from '../data/allCurricula'; 
 import type { StudyPlanItem } from '../types';
 import './Dashboard.css';
 
-interface ProgressSummary {
-  completedSubjects: number;
-  completedCredits: number;
-  totalProgramCredits: number;
-  progressPercentage: number;
-  gpa: number;
-  papa: number;
-}
-
 export const Dashboard: React.FC = () => {
-  // Gestión del estado
+  // --- ESTADOS ---
+  const [viewMode, setViewMode] = useState<'recommended' | 'custom'>('recommended');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [customSubjects, setCustomSubjects] = useState<StudyPlanItem[]>([]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedSubject, setSelectedSubject] = useState<StudyPlanItem | null>(null);
+  const [filterStatus, setFilterStatus] = useState('all'); 
   
-  // Estado de datos
+  const [selectedSubject, setSelectedSubject] = useState<StudyPlanItem | null>(null);
   const [curriculum, setCurriculum] = useState<StudyPlanItem[]>([]);
-  const [progressSummary, setProgressSummary] = useState<ProgressSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;
 
-  // Verificación de rol
+  // --- CARGA DE DATOS LOCALES ---
+  useEffect(() => {
+    const savedCustom = localStorage.getItem('myCustomSubjects');
+    if (savedCustom) {
+      try { setCustomSubjects(JSON.parse(savedCustom)); } catch (e) { console.error(e); }
+    }
+  }, []);
+
+  const saveCustomSubject = (newSubject: StudyPlanItem) => {
+    const updated = [...customSubjects, newSubject];
+    setCustomSubjects(updated);
+    localStorage.setItem('myCustomSubjects', JSON.stringify(updated));
+  };
+
   const isGuestUser = () => {
     const userStr = localStorage.getItem('user');
     if (!userStr) return false;
@@ -42,259 +48,208 @@ export const Dashboard: React.FC = () => {
 
   const getToken = () => localStorage.getItem('accessToken') || '';
 
-  // Carga de la malla curricular
+  // --- FETCHING DE DATOS ---
   const fetchCurriculum = async () => {
+    setIsLoading(true);
+    setError(''); 
+    let baseCurriculum: StudyPlanItem[] = [];
+
     if (isGuestUser()) {
-      // Modo invitado: usa datos locales
-      setCurriculum(mockCurriculum);
-      return;
-    }
+      // MODO INVITADO: Usa datos locales (Mocks)
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const programCode = user?.programCode;
 
-    const token = getToken();
-    if (!token) {
-      setError('No se encontró token de autenticación');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`${PYTHON_API_URL}/student/curriculum`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Fallo al obtener la malla curricular');
+      if (programCode && allCurricula[programCode]) {
+        baseCurriculum = allCurricula[programCode];
+      } else {
+        baseCurriculum = mockCurriculum; 
       }
+    } else {
+      // MODO USUARIO: Usa la BASE DE DATOS REAL
+      const token = getToken();
+      if (!token) { setIsLoading(false); return; }
 
-      const data = await response.json();
-      setCurriculum(data.curriculum || []);
-    } catch (err: any) {
-      console.error('Error fetching curriculum:', err);
-      setError(err.message || 'Error cargando la malla');
+      try {
+        const response = await fetch(`${PYTHON_API_URL}/student/curriculum`, {
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error('Fallo al obtener la malla curricular real');
+
+        const data = await response.json();
+        // Asumimos que el backend devuelve { curriculum: [...] }
+        baseCurriculum = data.curriculum || [];
+      } catch (err: any) {
+        console.error('Error fetching curriculum:', err);
+        setError('No se pudo conectar con la Base de Datos. Mostrando datos locales.');
+        // Fallback a mock si falla la red para que no se vea vacío
+        baseCurriculum = mockCurriculum;
+      }
     }
+    
+    setCurriculum(baseCurriculum);
+    setIsLoading(false);
   };
 
-  // Carga del resumen de progreso
-  const fetchProgressSummary = async () => {
-    if (isGuestUser()) {
-      // Calcular el resumen basado en el estado actual del curriculum
-      const completed = curriculum.filter(item => item.progress?.status === 'Completed');
-      const completedCredits = completed.reduce((sum, item) => sum + (item.subject?.credits || 0), 0);
-      const totalCredits = 160; // Ajusta según tu programa
-      
-      // Calcular GPA y PAPA
-      const gradesWithCredits = completed
-        .filter(item => typeof item.progress?.final_grade === 'number')
-        .map(item => ({
-          grade: item.progress!.final_grade!,
-          credits: item.subject?.credits || 0
-        }));
-      
-      const totalGradePoints = gradesWithCredits.reduce((sum, g) => sum + (g.grade * g.credits), 0);
-      const totalCreditsWithGrades = gradesWithCredits.reduce((sum, g) => sum + g.credits, 0);
-      
-      const papa = totalCreditsWithGrades > 0 ? totalGradePoints / totalCreditsWithGrades : 0;
-      const gpa = gradesWithCredits.length > 0 
-        ? gradesWithCredits.reduce((sum, g) => sum + g.grade, 0) / gradesWithCredits.length 
-        : 0;
-
-      setProgressSummary({
-        completedSubjects: completed.length,
-        completedCredits: completedCredits,
-        totalProgramCredits: totalCredits,
-        progressPercentage: (completedCredits / totalCredits) * 100,
-        gpa: gpa,
-        papa: papa
-      });
-      return;
-    }
-
-    const token = getToken();
-    if (!token) return;
-
-    try {
-      const response = await fetch(`${PYTHON_API_URL}/student/progress-summary`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Fallo al obtener resumen de progreso');
-      }
-
-      const data = await response.json();
-      setProgressSummary(data);
-    } catch (err: any) {
-      console.error('Error fetching progress:', err);
-    }
-  };
-
-  // Efecto de carga inicial
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      await fetchCurriculum();
-      setIsLoading(false);
-    };
-
-    loadData();
+    fetchCurriculum();
   }, []);
 
-  // Recalcular el resumen cuando cambia el curriculum
-  useEffect(() => {
-    if (curriculum.length > 0) {
-      fetchProgressSummary();
-    }
-  }, [curriculum]);
+  // --- LÓGICA DE VISUALIZACIÓN ---
+  
+  // 1. Unificar listas según el modo
+  const itemsToDisplay = useMemo(() => {
+    return viewMode === 'recommended' ? curriculum : [...curriculum, ...customSubjects];
+  }, [viewMode, curriculum, customSubjects]);
 
-  // Helpers de estado y filtros
-  const getSubjectStatus = (item: StudyPlanItem): 'approved' | 'enrolled' | 'planned' | 'pending' => {
+  // 2. Helper de estado
+  const getSubjectStatus = (item: StudyPlanItem): string => {
     const status = item.progress?.status;
-    
     if (status === 'Completed') return 'approved';
     if (status === 'Enrolled') return 'enrolled';
     if (status === 'Planned') return 'planned';
     return 'pending';
   };
 
-  const filteredItems = curriculum.filter(item => {
-    const name = item.subject?.name ?? '';
-    const matchesSearch = 
-      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.subject_code ?? '').toLowerCase().includes(searchTerm.toLowerCase());
+  // 3. Filtrado
+  const filteredItems = useMemo(() => {
+    return itemsToDisplay.filter(item => {
+      const name = item.subject?.name ?? '';
+      const code = item.subject_code ?? '';
+      
+      const matchesSearch = 
+        name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        code.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const typeStr = (item.component || item.subject?.component_type || '').toLowerCase();
+      const filterLower = filterType.toLowerCase();
+      const matchesType = filterType === 'all' || typeStr.includes(filterLower);
+
+      const currentStatus = getSubjectStatus(item);
+      const matchesStatus = filterStatus === 'all' || currentStatus === filterStatus;
+      
+      return matchesSearch && matchesType && matchesStatus;
+    });
+  }, [itemsToDisplay, searchTerm, filterType, filterStatus]);
+
+  // --- CÁLCULO DE MÉTRICAS (En tiempo real) ---
+  const metrics = useMemo(() => {
+    // Filtramos solo las materias aprobadas de la lista ACTUAL (Recomendada o Custom)
+    const completed = itemsToDisplay.filter(i => i.progress?.status === 'Completed');
     
-    const matchesType = filterType === 'all' || (item.component ?? '') === filterType;
-
-    const currentStatus = getSubjectStatus(item);
-    const matchesStatus = filterStatus === 'all' || currentStatus === filterStatus;
+    const creditsCompleted = completed.reduce((sum, i) => sum + (i.subject?.credits || 0), 0);
+    // Total créditos estimado (puedes ajustarlo o traerlo del back)
+    const totalCreditsProgram = 160; 
     
-    return matchesSearch && matchesType && matchesStatus;
-  });
+    // Cálculo de promedios usando las materias que tienen nota numérica
+    const gradedSubjects = completed.filter(i => i.progress?.final_grade !== undefined && i.progress?.final_grade !== null);
+    
+    let sumGrades = 0;
+    let sumWeighted = 0;
+    let sumCreditsGraded = 0;
 
-  const handleSubjectClick = (item: StudyPlanItem) => {
-    setSelectedSubject(item);
-  };
+    gradedSubjects.forEach(sub => {
+      const grade = sub.progress!.final_grade!;
+      const credits = sub.subject?.credits || 0;
+      
+      sumGrades += grade;
+      sumWeighted += (grade * credits);
+      sumCreditsGraded += credits;
+    });
 
-  const handleCloseModal = () => {
-    setSelectedSubject(null);
-  };
+    const pa = gradedSubjects.length > 0 ? (sumGrades / gradedSubjects.length) : 0;
+    const papa = sumCreditsGraded > 0 ? (sumWeighted / sumCreditsGraded) : 0;
+    const percentage = Math.min((creditsCompleted / totalCreditsProgram) * 100, 100);
 
-  const handleProgressUpdate = async () => {
-    if (isGuestUser()) {
-      // En modo invitado, forzar la actualización del curriculum
-      // Crear una copia nueva del array para forzar re-render
-      setCurriculum([...curriculum]);
-      return;
-    }
+    return { creditsCompleted, totalCreditsProgram, percentage, pa, papa };
+  }, [itemsToDisplay]);
 
-    await Promise.all([
-      fetchCurriculum(),
-      fetchProgressSummary()
-    ]);
-  };
 
-  if (isLoading) {
-    return (
-      <div className="dashboard-container">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '400px',
-          fontSize: '18px',
-          color: 'var(--color-unal-gray)'
-        }}>
-          Cargando malla curricular...
-        </div>
-      </div>
-    );
-  }
+  // --- RENDER ---
 
-  if (error) {
-    return (
-      <div className="dashboard-container">
-        <div style={{ 
-          padding: '20px',
-          backgroundColor: '#fee2e2',
-          border: '1px solid #fca5a5',
-          borderRadius: '8px',
-          color: '#991b1b'
-        }}>
-          Error: {error}
-        </div>
-      </div>
-    );
-  }
-
-  const safeProgressPercentage = progressSummary?.progressPercentage ?? 0;
-  const safeGpa = progressSummary?.gpa ?? 0;
-  const safePapa = progressSummary?.papa ?? 0;
-  const safeCompletedCredits = progressSummary?.completedCredits ?? 0;
-  const safeTotalProgramCredits = progressSummary?.totalProgramCredits ?? 180;
+  if (isLoading) return <div className="dashboard-container"><div style={{padding: '40px', textAlign: 'center'}}>Cargando malla...</div></div>;
 
   return (
     <div className="dashboard-container">
       
+      {/* 1. SECCIÓN DE MÉTRICAS (RESTAURADA) */}
       <section className="metrics-panel">
         <div className="metric-card">
           <span className="metric-label">Créditos Cursados</span>
           <div className="flex items-end gap-2">
-            <span className="metric-value">
-              {safeCompletedCredits}
-            </span>
-            <span className="metric-subtext mb-1">
-              de {safeTotalProgramCredits}
-            </span>
+            <span className="metric-value">{metrics.creditsCompleted}</span>
+            <span className="metric-subtext">de {metrics.totalCreditsProgram}</span>
           </div>
           <div className="progress-container">
-            <div 
-              className="progress-bar" 
-              style={{ width: `${safeProgressPercentage}%` }}
-            ></div>
+            <div className="progress-bar" style={{ width: `${metrics.percentage}%` }}></div>
           </div>
         </div>
 
         <div className="metric-card">
           <span className="metric-label">Avance Total</span>
-          <span className="metric-value">
-            {(safeProgressPercentage).toFixed(1)}%
-          </span>
+          <span className="metric-value">{metrics.percentage.toFixed(1)}%</span>
           <div className="progress-container">
-            <div 
-              className="progress-bar blue" 
-              style={{ width: `${safeProgressPercentage}%` }}
-            ></div>
+            <div className="progress-bar blue" style={{ width: `${metrics.percentage}%` }}></div>
           </div>
         </div>
 
         <div className="metric-card">
           <span className="metric-label">P.A. (Global)</span>
-          <span className="metric-value">
-            {safeGpa.toFixed(2)}
-          </span>
+          <span className="metric-value">{metrics.pa.toFixed(2)}</span>
           <span className="metric-subtext">Promedio Aritmético</span>
         </div>
 
         <div className="metric-card">
           <span className="metric-label">P.A.P.A.</span>
-          <span className="metric-value">
-            {safePapa.toFixed(2)}
-          </span>
+          <span className="metric-value">{metrics.papa.toFixed(2)}</span>
           <span className="metric-subtext">Promedio Ponderado</span>
         </div>
       </section>
 
+      {/* 2. MENSAJE DE ERROR (SI FALLA CONEXIÓN DB) */}
+      {error && (
+        <div style={{margin: '0 0 15px', padding: '10px 15px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', fontSize: '0.9rem'}}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      {/* 3. BARRA DE HERRAMIENTAS */}
       <section className="toolbar-container">
+        <div style={{ display: 'flex', gap: '10px', marginRight: 'auto', flexWrap: 'wrap' }}>
+          <button 
+            onClick={() => setViewMode('recommended')}
+            className={`view-toggle-btn ${viewMode === 'recommended' ? 'active' : ''}`}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer',
+              border: viewMode === 'recommended' ? '2px solid var(--unal-red)' : '1px solid #ddd',
+              backgroundColor: viewMode === 'recommended' ? '#fff0f0' : 'white',
+              color: viewMode === 'recommended' ? 'var(--unal-red)' : '#666',
+              transition: 'all 0.2s'
+            }}
+          >
+            <Grid size={18} /> <span className="hidden-mobile">Malla Recomendada</span>
+          </button>
+
+          <button 
+            onClick={() => setViewMode('custom')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '6px', fontWeight: 600, cursor: 'pointer',
+              border: viewMode === 'custom' ? '2px solid var(--unal-red)' : '1px solid #ddd',
+              backgroundColor: viewMode === 'custom' ? '#fff0f0' : 'white',
+              color: viewMode === 'custom' ? 'var(--unal-red)' : '#666',
+              transition: 'all 0.2s'
+            }}
+          >
+            <User size={18} /> <span className="hidden-mobile">Mi Malla</span>
+          </button>
+        </div>
+
         <div className="search-box">
           <Search size={18} className="search-icon" />
           <input 
             type="text" 
-            placeholder="Buscar materia por código o nombre..." 
+            placeholder="Buscar materia..." 
             className="search-input"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -302,53 +257,63 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="filters-group">
-          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--color-unal-gray)' }}>
+            {viewMode === 'custom' && (
+                <button 
+                onClick={() => setIsAddModalOpen(true)}
+                style={{
+                    backgroundColor: 'var(--unal-dark)', color: 'white', border: 'none', borderRadius: '6px', padding: '10px 16px',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                }}
+                >
+                <Plus size={18} /> <span className="hidden-mobile">Agregar</span>
+                </button>
+            )}
+
+          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--unal-gray)' }}>
             <Filter size={20} />
           </div>
 
-          <select 
-            className="filter-select" 
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-          >
-            <option value="all">Todos los Tipos</option>
-            <option value="Foundational">Fundamentación</option>
-            <option value="Disciplinary">Disciplinar</option>
-            <option value="Free Elective">Libre Elección</option>
-            <option value="Leveling">Nivelación</option>
+          <select className="filter-select" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+            <option value="all">Tipos</option>
+            <option value="fundamenta">Fundamentación</option>
+            <option value="disciplinar">Disciplinar</option>
+            <option value="libre">Libre Elección</option>
+            <option value="nivelaci">Nivelación</option>
           </select>
 
-          <select 
-            className="filter-select" 
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            <option value="all">Todos los Estados</option>
-            <option value="approved">Aprobada (Verde)</option>
-            <option value="enrolled">Inscrita (Azul)</option>
-            <option value="planned">Planeada (Azul Claro)</option>
-            <option value="pending">Pendiente (Gris)</option>
+          <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            <option value="all">Estados</option>
+            <option value="approved">Aprobada</option>
+            <option value="enrolled">Inscrita</option>
+            <option value="planned">Planeada</option>
+            <option value="pending">Pendiente</option>
           </select>
         </div>
       </section>
 
+      {/* 4. GRID DE MATERIAS */}
       <section className="curriculum-scroll-area">
         <CurriculumGrid 
           items={filteredItems} 
-          onSubjectClick={handleSubjectClick}
-          getSubjectStatus={getSubjectStatus}
+          onSubjectClick={(item) => setSelectedSubject(item)}
+          getSubjectStatus={(item) => getSubjectStatus(item) as any}
         />
       </section>
 
       <SubjectDetailModal 
         isOpen={!!selectedSubject} 
-        onClose={handleCloseModal} 
+        onClose={() => setSelectedSubject(null)} 
         data={selectedSubject}
-        allSubjects={curriculum}
-        onProgressUpdate={handleProgressUpdate}
+        allSubjects={itemsToDisplay} 
+        onProgressUpdate={() => fetchCurriculum()}
+      />
+
+      <AddSubjectModal 
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onAdd={saveCustomSubject}
       />
 
     </div>
   );
 };
-

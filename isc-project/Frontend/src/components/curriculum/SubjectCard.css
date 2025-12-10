@@ -209,3 +209,40 @@
     opacity: 0.6;
   }
 }
+
+.subject-card.failed {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-color: #ef4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.subject-card.failed:hover {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+  border-color: #dc2626;
+}
+
+.subject-card.failed .subject-name {
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.subject-card.failed .subject-code {
+  color: #b91c1c;
+}
+
+.subject-card.failed .credits-badge {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+}
+
+/* Badge específico para mostrar la nota reprobatoria */
+.grade-badge-fail {
+    background-color: #991b1b !important;
+    color: white !important;
+}
+
+/* Helper para texto rojo en modal */
+.grade-fail-text {
+    color: #dc2626;
+    font-weight: 800;
+}
