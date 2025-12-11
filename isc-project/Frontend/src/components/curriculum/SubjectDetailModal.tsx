@@ -19,6 +19,8 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const PYTHON_API_URL = import.meta.env.VITE_PYTHON_API_URL;  
+  
+  // Colores institucionales (Hardcoded por si las variables CSS fallan, pero priorizando consistencia)
   const UNAL_RED = '#94191c';
 
   if (!isOpen || !data) return null;
@@ -76,7 +78,6 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
     return { valid: missingNames.length === 0, missingNames };
   };
 
-  // --- GUARDADO SEGURO (SOLUCIÓN 422) ---
   const performUpdate = async (status: string, finalGrade: number | null) => {
     if (isGuestUser()) {
       setTimeout(() => {
@@ -92,19 +93,21 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
 
     const token = getToken();
     try {
-      const params = new URLSearchParams();
-      params.append('subject_code', String(subject_code));
-      params.append('status', status);
+      const codeParam = String(subject_code);
+      const statusParam = status;
+      let gradeParam = '';
       
       if (finalGrade !== null && finalGrade !== undefined && !isNaN(finalGrade)) {
-        params.append('final_grade', finalGrade.toString());
+          gradeParam = `&final_grade=${finalGrade}`;
       }
 
-      const url = `${PYTHON_API_URL}/student/progress?${params.toString()}`;
+      const url = `${PYTHON_API_URL}/student/progress?subject_code=${codeParam}&status=${statusParam}${gradeParam}`;
 
       const response = await fetch(url, {
           method: 'POST',
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { 
+            'Authorization': `Bearer ${token}`
+          }
       });
 
       if (!response.ok) {
@@ -113,14 +116,15 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
       }
 
       await response.json(); 
-      showMessageFn('success', status === 'Not Taken' ? 'Materia Reiniciada' : 'Progreso Guardado');
+
+      showMessageFn('success', status === 'Pending' ? 'Materia Reiniciada' : 'Progreso Guardado');
       setGrade('');
       if (onProgressUpdate) {
         setTimeout(() => { onProgressUpdate(); onClose(); }, 1000);
       }
     } catch (error: any) {
       console.error("Error update:", error);
-      showMessageFn('error', 'Error de conexión. Intenta de nuevo.');
+      showMessageFn('error', 'No se pudo guardar. Verifica la nota y conexión.');
     } finally {
       if (!isGuestUser()) setIsSaving(false);
     }
@@ -138,13 +142,15 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
 
   const handleRegisterGrade = async () => {
     const gradeValue = parseFloat(grade);
+    
     if (!grade || isNaN(gradeValue) || gradeValue < 0 || gradeValue > 5) {
       showMessageFn('error', 'Ingresa una nota válida (0.0 - 5.0)');
       return;
     }
-    // SIEMPRE 'Completed' para guardar la nota (incluso si reprueba)
-    const newStatus = 'Completed'; 
-    if (gradeValue >= 3.0) {
+
+    const newStatus = gradeValue >= 3.0 ? 'Completed' : 'Failed';
+    
+    if (newStatus === 'Completed') {
         const { valid, missingNames } = validatePrerequisites();
         if (!valid) {
           showMessageFn('error', `Error lógico: Faltan requisitos: ${missingNames.join(', ')}.`);
@@ -158,8 +164,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
   const handleReset = async () => {
     if (!confirm("¿Deseas reiniciar esta materia? Se borrará la nota.")) return;
     setIsSaving(true);
-    // Para borrar totalmente usamos 'Not Taken'
-    await performUpdate('Not Taken', 0);
+    await performUpdate('Pending', 0);
   };
 
   const prerequisites = Array.isArray(prereq_rules?.required) ? prereq_rules!.required : [];
@@ -168,29 +173,38 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
         
+        {/* HEADER */}
         <div className="modal-header">
           <div>
             <h2 className="modal-title">{displayData.name}</h2>
             <span className="modal-subtitle">Código: {subject_code}</span>
           </div>
-          <button className="close-btn" onClick={onClose}> <X size={24} /> </button>
+          <button 
+            className="close-btn" 
+            onClick={onClose}
+            style={{ borderRadius: '50%', padding: '8px', transition: 'background 0.2s' }}
+          >
+            <X size={24} />
+          </button>
         </div>
 
+        {/* MENSAJES DE ESTADO */}
         {message.text && (
           <div style={{
-            margin: '0 24px 16px', padding: '12px', borderRadius: '8px',
+            padding: '12px 16px', margin: '0 24px 16px', borderRadius: '8px',
             backgroundColor: message.type === 'success' ? '#ecfdf5' : '#fef2f2',
             color: message.type === 'success' ? '#065f46' : '#991b1b',
             border: `1px solid ${message.type === 'success' ? '#a7f3d0' : '#fecaca'}`,
-            display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem',
+            display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.95rem',
             animation: 'fadeIn 0.3s ease-out'
           }}>
             {message.type === 'success' ? <Check size={18}/> : <XCircle size={18}/>}
-            <span style={{fontWeight: 500}}>{message.text}</span>
+            <span style={{ fontWeight: 500 }}>{message.text}</span>
           </div>
         )}
 
         <div className="modal-content">
+          {/* INFO GENERAL */}
           <section className="detail-section">
             <h3 className="section-title">Información General</h3>
             <div className="info-grid">
@@ -199,12 +213,17 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
                 <span className="info-value">{displayData.credits}</span>
               </div>
               <div className="info-item">
-                <span className="info-label">Estado Actual</span>
+                <span className="info-label">Estado</span>
                 <span className="info-value" style={{
-                    color: isPassed ? '#10b981' : isFailed ? '#ef4444' : isEnrolled ? '#3b82f6' : 'inherit',
-                    fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px'
+                    color: isCompleted ? '#10b981' : displayData.currentStatus === 'Failed' ? '#ef4444' : 
+                           isEnrolled ? '#3b82f6' : 'inherit',
+                    fontWeight: 'bold',
+                    display: 'flex', alignItems: 'center', gap: '6px'
                 }}>
-                    {isPassed ? '✓ Aprobada' : isFailed ? '✕ Reprobada' : isEnrolled ? '⏱ Cursando' : 'Pendiente'}
+                    {isCompleted ? '✓ Aprobada' : 
+                     displayData.currentStatus === 'Failed' ? '✕ Reprobada' : 
+                     isEnrolled ? '⏱ Cursando' : 
+                     'Pendiente'}
                 </span>
               </div>
               {typeof displayData.currentGrade === "number" && !isEnrolled && (
@@ -220,7 +239,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
 
           <section className="detail-section">
             <h3 className="section-title">Descripción</h3>
-            <p className="description-text" style={{lineHeight: '1.6', color: '#555'}}>
+            <p className="description-text" style={{ color: '#555', lineHeight: '1.6' }}>
               {displayData.description}
             </p>
           </section>
@@ -231,8 +250,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
               <div className="prereq-list">
                 {prerequisites.map((prereq: string, idx: number) => (
                   <div key={idx} className="prereq-tag" style={{
-                      backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb',
-                      padding: '6px 12px', borderRadius: '16px', fontSize: '0.85rem'
+                    backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', color: '#374151', padding: '6px 12px', borderRadius: '20px'
                   }}>
                     {prereq}
                   </div>
@@ -241,74 +259,158 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
             </section>
           )}
 
-          {/* ACCIONES */}
-          {!isPassed && !isEnrolled && (
-             <div style={{ marginTop: '30px', padding: '0 20px' }}>
-                <button onClick={handleEnroll} disabled={isSaving} style={{
-                    width: '100%', padding: '14px', backgroundColor: UNAL_RED, color: 'white',
-                    border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 600,
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                    boxShadow: '0 4px 6px rgba(148, 25, 28, 0.2)', transition: 'all 0.2s'
+          {/* --- ACCIONES PRINCIPALES (Diseño Mejorado) --- */}
+          
+          {/* 1. BOTÓN DE INSCRIBIR */}
+          {!isCompleted && !isEnrolled && displayData.currentStatus !== 'Failed' && (
+             <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'center' }}>
+                <button 
+                  onClick={handleEnroll} 
+                  disabled={isSaving} 
+                  style={{
+                    width: '100%', 
+                    padding: '14px 20px',
+                    backgroundColor: UNAL_RED,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '10px',
+                    boxShadow: '0 4px 6px rgba(148, 25, 28, 0.2)',
+                    transition: 'all 0.2s ease',
+                    opacity: isSaving ? 0.7 : 1
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+                  onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-1px)'}
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                 >
                     <BookOpen size={20} strokeWidth={2}/> 
-                    {isSaving ? 'Procesando...' : isFailed ? 'Repetir Asignatura' : 'Inscribir Asignatura'}
+                    {isSaving ? 'Inscribiendo...' : 'Inscribir Asignatura'}
                 </button>
              </div>
           )}
 
-          {(isEnrolled || isFailed) && (
-            <section className="detail-section" style={{
-                marginTop: '30px', backgroundColor: '#fafafa', padding: '24px',
-                borderRadius: '12px', border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', alignItems: 'center'
+          {/* 2. FORMULARIO DE NOTA */}
+          {(isEnrolled || displayData.currentStatus === 'Failed') && (
+            <section className="detail-section" style={{ 
+                marginTop: '30px', 
+                backgroundColor: '#fafafa', 
+                padding: '20px', 
+                borderRadius: '12px',
+                border: '1px solid #f0f0f0'
             }}>
-              <h3 className="section-title" style={{border: 'none', marginBottom: '16px', textAlign: 'center'}}>
-                {isEnrolled ? 'Registrar Nota Final' : 'Corregir Nota'}
+              <h3 className="section-title" style={{ textAlign: 'center', border: 'none', marginBottom: '15px' }}>
+                {isEnrolled ? 'Finalizar Curso' : 'Intentar Nuevamente'}
               </h3>
               
-              <div style={{width: '100%', maxWidth: '280px', display: 'flex', flexDirection: 'column', gap: '12px'}}>
-                  <input type="number" min="0" max="5" step="0.1" value={grade} onChange={(e) => setGrade(e.target.value)}
-                    placeholder="Ej: 3.5" style={{
-                        width: '100%', padding: '12px', fontSize: '1.2rem', textAlign: 'center', fontWeight: 'bold',
-                        borderRadius: '8px', border: '2px solid #e5e7eb', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box'
-                    }}
-                    onFocus={(e) => e.target.style.borderColor = UNAL_RED}
-                    onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
-                  />
-                  <button onClick={handleRegisterGrade} disabled={isSaving || !grade} style={{
-                        width: '100%', padding: '12px', backgroundColor: !grade ? '#e5e7eb' : UNAL_RED,
-                        color: !grade ? '#9ca3af' : 'white', border: 'none', borderRadius: '8px', fontWeight: 600,
-                        cursor: !grade ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                        transition: 'background-color 0.2s'
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', alignItems: 'center' }}>
+                  <div style={{ width: '100%', maxWidth: '200px' }}>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.85rem', color: '#666', textAlign: 'center' }}>
+                      Nota Final (0.0 - 5.0)
+                    </label>
+                    <input
+                        type="number" min="0" max="5" step="0.1"
+                        value={grade}
+                        onChange={(e) => setGrade(e.target.value)}
+                        placeholder="Ej: 3.5"
+                        style={{
+                            width: '100%', 
+                            padding: '12px', 
+                            fontSize: '1.5rem', 
+                            textAlign: 'center', 
+                            fontWeight: 'bold',
+                            borderRadius: '8px', 
+                            border: '2px solid #e5e7eb',
+                            outline: 'none',
+                            color: '#333',
+                            transition: 'border-color 0.2s'
+                        }}
+                        onFocus={(e) => e.target.style.borderColor = UNAL_RED}
+                        onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                    />
+                  </div>
+                  
+                  <button
+                    onClick={handleRegisterGrade}
+                    disabled={isSaving || !grade}
+                    style={{
+                        padding: '12px 30px',
+                        backgroundColor: !grade ? '#e5e7eb' : UNAL_RED,
+                        color: !grade ? '#9ca3af' : 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        cursor: !grade ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s',
+                        fontSize: '1rem'
                     }}
                   >
-                    <Save size={18} /> {isSaving ? 'Guardando...' : 'Confirmar Nota'}
+                    <Save size={18} />
+                    {isSaving ? 'Guardando...' : 'Registrar Calificación'}
                   </button>
               </div>
             </section>
           )}
         </div>
 
-        <div className="modal-actions" style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            paddingTop: '16px', marginTop: '10px', borderTop: '1px solid #f0f0f0'
+        {/* FOOTER ACCIONES SECUNDARIAS */}
+        <div className="modal-actions" style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            paddingTop: '15px',
+            marginTop: '10px',
+            borderTop: '1px solid #f0f0f0' 
         }}>
+          
+          {/* BOTÓN REINICIAR MEJORADO: Estilo "Ghost" con color institucional */}
           {displayData.currentStatus !== 'Not Taken' && displayData.currentStatus !== 'Pending' ? (
-             <button onClick={handleReset} disabled={isSaving} style={{
-                 background: 'transparent', border: '1px solid #ef4444', color: '#ef4444',
-                 padding: '8px 16px', borderRadius: '6px', cursor: 'pointer',
-                 display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 500, transition: 'background 0.2s'
+             <button 
+               onClick={handleReset} 
+               disabled={isSaving}
+               style={{
+                 background: 'transparent',
+                 border: `1px solid ${UNAL_RED}`,
+                 color: UNAL_RED,
+                 padding: '8px 16px',
+                 borderRadius: '6px',
+                 cursor: 'pointer',
+                 display: 'flex', 
+                 alignItems: 'center', 
+                 gap: '8px',
+                 fontSize: '0.9rem',
+                 fontWeight: 600,
+                 transition: 'all 0.2s',
+                 opacity: 0.8
                }}
-               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+               onMouseEnter={(e) => {
+                   e.currentTarget.style.backgroundColor = '#fff1f2'; 
+                   e.currentTarget.style.opacity = '1';
+               }}
+               onMouseLeave={(e) => {
+                   e.currentTarget.style.backgroundColor = 'transparent';
+                   e.currentTarget.style.opacity = '0.8';
+               }}
              >
-                <RotateCcw size={16} /> Reiniciar
+                <RotateCcw size={16} /> 
+                Reiniciar Materia
              </button>
           ) : <div/>} 
           
-          <button className="btn-modal btn-cancel" onClick={onClose} style={{fontWeight: 500}}>Cerrar</button>
+          <button 
+            className="btn-modal btn-cancel" 
+            onClick={onClose}
+            style={{ fontWeight: 500 }}
+          >
+            Cerrar
+          </button>
         </div>
       </div>
     </div>
