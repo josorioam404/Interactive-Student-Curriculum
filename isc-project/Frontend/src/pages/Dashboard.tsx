@@ -55,7 +55,6 @@ export const Dashboard: React.FC = () => {
     let baseCurriculum: StudyPlanItem[] = [];
 
     if (isGuestUser()) {
-      // MODO INVITADO: Usa datos locales (Mocks)
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
       const programCode = user?.programCode;
@@ -66,7 +65,6 @@ export const Dashboard: React.FC = () => {
         baseCurriculum = mockCurriculum; 
       }
     } else {
-      // MODO USUARIO: Usa la BASE DE DATOS REAL
       const token = getToken();
       if (!token) { setIsLoading(false); return; }
 
@@ -78,12 +76,10 @@ export const Dashboard: React.FC = () => {
         if (!response.ok) throw new Error('Fallo al obtener la malla curricular real');
 
         const data = await response.json();
-        // Asumimos que el backend devuelve { curriculum: [...] }
         baseCurriculum = data.curriculum || [];
       } catch (err: any) {
         console.error('Error fetching curriculum:', err);
         setError('No se pudo conectar con la Base de Datos. Mostrando datos locales.');
-        // Fallback a mock si falla la red para que no se vea vacío
         baseCurriculum = mockCurriculum;
       }
     }
@@ -97,22 +93,19 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   // --- LÓGICA DE VISUALIZACIÓN ---
-  
-  // 1. Unificar listas según el modo
   const itemsToDisplay = useMemo(() => {
     return viewMode === 'recommended' ? curriculum : [...curriculum, ...customSubjects];
   }, [viewMode, curriculum, customSubjects]);
 
-  // 2. Helper de estado
   const getSubjectStatus = (item: StudyPlanItem): string => {
     const status = item.progress?.status;
     if (status === 'Completed') return 'approved';
     if (status === 'Enrolled') return 'enrolled';
     if (status === 'Planned') return 'planned';
+    if (status === 'Failed') return 'failed';
     return 'pending';
   };
 
-  // 3. Filtrado
   const filteredItems = useMemo(() => {
     return itemsToDisplay.filter(item => {
       const name = item.subject?.name ?? '';
@@ -133,16 +126,13 @@ export const Dashboard: React.FC = () => {
     });
   }, [itemsToDisplay, searchTerm, filterType, filterStatus]);
 
-  // --- CÁLCULO DE MÉTRICAS (En tiempo real) ---
+  // --- CÁLCULO DE MÉTRICAS ---
   const metrics = useMemo(() => {
-    // Filtramos solo las materias aprobadas de la lista ACTUAL (Recomendada o Custom)
     const completed = itemsToDisplay.filter(i => i.progress?.status === 'Completed');
     
     const creditsCompleted = completed.reduce((sum, i) => sum + (i.subject?.credits || 0), 0);
-    // Total créditos estimado (puedes ajustarlo o traerlo del back)
     const totalCreditsProgram = 160; 
     
-    // Cálculo de promedios usando las materias que tienen nota numérica
     const gradedSubjects = completed.filter(i => i.progress?.final_grade !== undefined && i.progress?.final_grade !== null);
     
     let sumGrades = 0;
@@ -165,15 +155,17 @@ export const Dashboard: React.FC = () => {
     return { creditsCompleted, totalCreditsProgram, percentage, pa, papa };
   }, [itemsToDisplay]);
 
-
-  // --- RENDER ---
+  // Esta es la función que daba el aviso
+  const handleProgressUpdate = async () => {
+    await fetchCurriculum();
+  };
 
   if (isLoading) return <div className="dashboard-container"><div style={{padding: '40px', textAlign: 'center'}}>Cargando malla...</div></div>;
 
   return (
     <div className="dashboard-container">
       
-      {/* 1. SECCIÓN DE MÉTRICAS (RESTAURADA) */}
+      {/* MÉTRICAS */}
       <section className="metrics-panel">
         <div className="metric-card">
           <span className="metric-label">Créditos Cursados</span>
@@ -207,14 +199,13 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. MENSAJE DE ERROR (SI FALLA CONEXIÓN DB) */}
       {error && (
         <div style={{margin: '0 0 15px', padding: '10px 15px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', fontSize: '0.9rem'}}>
           ⚠️ {error}
         </div>
       )}
 
-      {/* 3. BARRA DE HERRAMIENTAS */}
+      {/* TOOLBAR */}
       <section className="toolbar-container">
         <div style={{ display: 'flex', gap: '10px', marginRight: 'auto', flexWrap: 'wrap' }}>
           <button 
@@ -291,7 +282,7 @@ export const Dashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. GRID DE MATERIAS */}
+      {/* GRID */}
       <section className="curriculum-scroll-area">
         <CurriculumGrid 
           items={filteredItems} 
@@ -305,7 +296,7 @@ export const Dashboard: React.FC = () => {
         onClose={() => setSelectedSubject(null)} 
         data={selectedSubject}
         allSubjects={itemsToDisplay} 
-        onProgressUpdate={() => fetchCurriculum()}
+        onProgressUpdate={handleProgressUpdate} // ¡AQUÍ ESTÁ LA CORRECCIÓN!
       />
 
       <AddSubjectModal 
