@@ -37,12 +37,15 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
   // --- LÓGICA DE ESTADOS ---
   const isEnrolled = displayData.currentStatus === 'Enrolled';
   
-  // Aprobada: Está completada Y nota >= 3.0
-  const isPassed = (displayData.currentStatus === 'Completed' || displayData.currentStatus === 'Approved') && 
+  // 1. Definimos isCompleted (El ciclo académico terminó)
+  const isCompleted = displayData.currentStatus === 'Completed' || displayData.currentStatus === 'Approved';
+
+  // 2. Definimos isPassed (Ganó la materia: Completada y Nota >= 3.0)
+  const isPassed = isCompleted && 
                    (displayData.currentGrade === undefined || displayData.currentGrade === null || displayData.currentGrade >= 3.0);
 
-  // Reprobada: Está completada PERO nota < 3.0
-  const isFailed = (displayData.currentStatus === 'Completed' || displayData.currentStatus === 'Failed') && 
+  // 3. Definimos isFailed (Perdió la materia: Completada pero Nota < 3.0)
+  const isFailed = isCompleted && 
                    (displayData.currentGrade !== undefined && displayData.currentGrade !== null && displayData.currentGrade < 3.0);
 
   const getToken = () => localStorage.getItem('accessToken') || '';
@@ -58,6 +61,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
     setTimeout(() => setMessage({ type: '', text: '' }), 4000);
   };
 
+  // --- VALIDACIÓN DE PRERREQUISITOS ---
   const validatePrerequisites = (): { valid: boolean; missingNames: string[] } => {
     const requiredCodes = prereq_rules?.required || [];
     const missingNames: string[] = [];
@@ -66,6 +70,8 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
       const reqSubject = allSubjects.find(s => String(s.subject_code) === String(reqCode));
       const status = reqSubject?.progress?.status;
       const grade = reqSubject?.progress?.final_grade;
+      
+      // Para validar el requisito, debe estar completada y ganada (>= 3.0)
       const passed = (status === 'Completed' || status === 'Approved') && (!grade || grade >= 3.0);
       
       if (!passed) {
@@ -76,12 +82,13 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
     return { valid: missingNames.length === 0, missingNames };
   };
 
-  // --- GUARDADO SEGURO (SOLUCIÓN 422) ---
+  // --- GUARDADO ---
   const performUpdate = async (status: string, finalGrade: number | null) => {
     if (isGuestUser()) {
       setTimeout(() => {
         if (!data.progress) data.progress = { subject_code: String(subject_code), status, final_grade: finalGrade || undefined };
         else { data.progress.status = status; data.progress.final_grade = finalGrade || undefined; }
+        
         showMessageFn('success', 'Actualizado (Invitado)');
         setGrade('');
         setIsSaving(false);
@@ -120,12 +127,13 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
       }
     } catch (error: any) {
       console.error("Error update:", error);
-      showMessageFn('error', 'Error de conexión. Intenta de nuevo.');
+      showMessageFn('error', 'Error al guardar. Intenta nuevamente.');
     } finally {
       if (!isGuestUser()) setIsSaving(false);
     }
   };
 
+  // --- HANDLERS ---
   const handleEnroll = async () => {
     const { valid, missingNames } = validatePrerequisites();
     if (!valid) {
@@ -142,8 +150,12 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
       showMessageFn('error', 'Ingresa una nota válida (0.0 - 5.0)');
       return;
     }
-    // SIEMPRE 'Completed' para guardar la nota (incluso si reprueba)
+    
+    // Siempre enviamos 'Completed' para guardar el registro.
+    // La lógica visual (isFailed) determinará si se muestra roja o verde.
     const newStatus = 'Completed'; 
+
+    // Solo validamos requisitos si la está aprobando
     if (gradeValue >= 3.0) {
         const { valid, missingNames } = validatePrerequisites();
         if (!valid) {
@@ -156,9 +168,8 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
   };
 
   const handleReset = async () => {
-    if (!confirm("¿Deseas reiniciar esta materia? Se borrará la nota.")) return;
+    if (!confirm("¿Deseas reiniciar esta materia? Se borrará la nota actual.")) return;
     setIsSaving(true);
-    // Para borrar totalmente usamos 'Not Taken'
     await performUpdate('Not Taken', 0);
   };
 
@@ -173,7 +184,9 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
             <h2 className="modal-title">{displayData.name}</h2>
             <span className="modal-subtitle">Código: {subject_code}</span>
           </div>
-          <button className="close-btn" onClick={onClose}> <X size={24} /> </button>
+          <button className="close-btn" onClick={onClose}>
+            <X size={24} />
+          </button>
         </div>
 
         {message.text && (
@@ -201,10 +214,13 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
               <div className="info-item">
                 <span className="info-label">Estado Actual</span>
                 <span className="info-value" style={{
-                    color: isPassed ? '#10b981' : isFailed ? '#ef4444' : isEnrolled ? '#3b82f6' : 'inherit',
+                    color: isPassed ? '#10b981' : isFailed ? '#ef4444' : 
+                           isEnrolled ? '#3b82f6' : 'inherit',
                     fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px'
                 }}>
-                    {isPassed ? '✓ Aprobada' : isFailed ? '✕ Reprobada' : isEnrolled ? '⏱ Cursando' : 'Pendiente'}
+                    {isPassed ? '✓ Aprobada' : 
+                     isFailed ? '✕ Reprobada' : 
+                     isEnrolled ? '⏱ Cursando' : 'Pendiente'}
                 </span>
               </div>
               {typeof displayData.currentGrade === "number" && !isEnrolled && (
@@ -241,10 +257,16 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
             </section>
           )}
 
-          {/* ACCIONES */}
+          {/* --- ACCIONES --- */}
+
+          {/* 1. BOTÓN INSCRIBIR / REPETIR */}
+          {/* Aparece si NO ha sido aprobada (isPassed=false) y NO está inscrita. */}
           {!isPassed && !isEnrolled && (
              <div style={{ marginTop: '30px', padding: '0 20px' }}>
-                <button onClick={handleEnroll} disabled={isSaving} style={{
+                <button 
+                  onClick={handleEnroll} 
+                  disabled={isSaving} 
+                  style={{
                     width: '100%', padding: '14px', backgroundColor: UNAL_RED, color: 'white',
                     border: 'none', borderRadius: '8px', fontSize: '1rem', fontWeight: 600,
                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
@@ -259,56 +281,84 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
              </div>
           )}
 
+          {/* 2. CALIFICAR (Si está cursando o está Reprobada y queremos corregir) */}
           {(isEnrolled || isFailed) && (
             <section className="detail-section" style={{
                 marginTop: '30px', backgroundColor: '#fafafa', padding: '24px',
                 borderRadius: '12px', border: '1px solid #f0f0f0', display: 'flex', flexDirection: 'column', alignItems: 'center'
             }}>
               <h3 className="section-title" style={{border: 'none', marginBottom: '16px', textAlign: 'center'}}>
-                {isEnrolled ? 'Registrar Nota Final' : 'Corregir Nota'}
+                {isEnrolled ? 'Registrar Nota Final' : isFailed ? 'Corregir Nota' : ''}
               </h3>
               
               <div style={{width: '100%', maxWidth: '280px', display: 'flex', flexDirection: 'column', gap: '12px'}}>
-                  <input type="number" min="0" max="5" step="0.1" value={grade} onChange={(e) => setGrade(e.target.value)}
-                    placeholder="Ej: 3.5" style={{
+                  <input
+                    type="number" min="0" max="5" step="0.1"
+                    value={grade}
+                    onChange={(e) => setGrade(e.target.value)}
+                    placeholder="Ej: 3.5"
+                    style={{
                         width: '100%', padding: '12px', fontSize: '1.2rem', textAlign: 'center', fontWeight: 'bold',
-                        borderRadius: '8px', border: '2px solid #e5e7eb', outline: 'none', transition: 'border-color 0.2s', boxSizing: 'border-box'
+                        borderRadius: '8px', border: '2px solid #e5e7eb', outline: 'none', transition: 'border-color 0.2s',
+                        boxSizing: 'border-box'
                     }}
                     onFocus={(e) => e.target.style.borderColor = UNAL_RED}
                     onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
                   />
-                  <button onClick={handleRegisterGrade} disabled={isSaving || !grade} style={{
-                        width: '100%', padding: '12px', backgroundColor: !grade ? '#e5e7eb' : UNAL_RED,
-                        color: !grade ? '#9ca3af' : 'white', border: 'none', borderRadius: '8px', fontWeight: 600,
-                        cursor: !grade ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  
+                  <button
+                    onClick={handleRegisterGrade}
+                    disabled={isSaving || !grade}
+                    style={{
+                        width: '100%', padding: '12px',
+                        backgroundColor: !grade ? '#e5e7eb' : UNAL_RED,
+                        color: !grade ? '#9ca3af' : 'white',
+                        border: 'none', borderRadius: '8px', fontWeight: 600,
+                        cursor: !grade ? 'not-allowed' : 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                         transition: 'background-color 0.2s'
                     }}
                   >
-                    <Save size={18} /> {isSaving ? 'Guardando...' : 'Confirmar Nota'}
+                    <Save size={18} />
+                    {isSaving ? 'Guardando...' : 'Confirmar Nota'}
                   </button>
               </div>
             </section>
           )}
         </div>
 
+        {/* FOOTER */}
         <div className="modal-actions" style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             paddingTop: '16px', marginTop: '10px', borderTop: '1px solid #f0f0f0'
         }}>
+          
+          {/* Botón Reiniciar solo aparece si ya se cursó */}
           {displayData.currentStatus !== 'Not Taken' && displayData.currentStatus !== 'Pending' ? (
-             <button onClick={handleReset} disabled={isSaving} style={{
+             <button 
+               onClick={handleReset} 
+               disabled={isSaving}
+               style={{
                  background: 'transparent', border: '1px solid #ef4444', color: '#ef4444',
                  padding: '8px 16px', borderRadius: '6px', cursor: 'pointer',
-                 display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 500, transition: 'background 0.2s'
+                 display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', fontWeight: 500,
+                 transition: 'background 0.2s'
                }}
                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
              >
-                <RotateCcw size={16} /> Reiniciar
+                <RotateCcw size={16} /> 
+                Reiniciar
              </button>
           ) : <div/>} 
           
-          <button className="btn-modal btn-cancel" onClick={onClose} style={{fontWeight: 500}}>Cerrar</button>
+          <button 
+            className="btn-modal btn-cancel" 
+            onClick={onClose}
+            style={{fontWeight: 500}}
+          >
+            Cerrar
+          </button>
         </div>
       </div>
     </div>
