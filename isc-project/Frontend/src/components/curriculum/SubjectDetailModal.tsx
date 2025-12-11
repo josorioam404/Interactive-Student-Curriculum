@@ -37,14 +37,14 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
   // --- LÓGICA DE ESTADOS ---
   const isEnrolled = displayData.currentStatus === 'Enrolled';
   
-  // 1. Definimos isCompleted (El ciclo académico terminó)
+  // 1. isCompleted: El backend dice que el ciclo terminó (ya sea que aprobó o reprobó)
   const isCompleted = displayData.currentStatus === 'Completed' || displayData.currentStatus === 'Approved';
 
-  // 2. Definimos isPassed (Ganó la materia: Completada y Nota >= 3.0)
+  // 2. isPassed: Está completada Y la nota es suficiente (o no requiere nota numérica)
   const isPassed = isCompleted && 
                    (displayData.currentGrade === undefined || displayData.currentGrade === null || displayData.currentGrade >= 3.0);
 
-  // 3. Definimos isFailed (Perdió la materia: Completada pero Nota < 3.0)
+  // 3. isFailed: Está completada PERO la nota es insuficiente (Reprobada)
   const isFailed = isCompleted && 
                    (displayData.currentGrade !== undefined && displayData.currentGrade !== null && displayData.currentGrade < 3.0);
 
@@ -213,6 +213,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
               </div>
               <div className="info-item">
                 <span className="info-label">Estado Actual</span>
+                {/* AQUÍ USAMOS LAS VARIABLES isPassed E isFailed */}
                 <span className="info-value" style={{
                     color: isPassed ? '#10b981' : isFailed ? '#ef4444' : 
                            isEnrolled ? '#3b82f6' : 'inherit',
@@ -260,7 +261,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
           {/* --- ACCIONES --- */}
 
           {/* 1. BOTÓN INSCRIBIR / REPETIR */}
-          {/* Aparece si NO ha sido aprobada (isPassed=false) y NO está inscrita. */}
+          {/* USAMOS isPassed PARA OCULTARLO SOLO SI YA GANÓ. SI PERDIÓ (isFailed), SE MUESTRA */}
           {!isPassed && !isEnrolled && (
              <div style={{ marginTop: '30px', padding: '0 20px' }}>
                 <button 
@@ -282,6 +283,7 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
           )}
 
           {/* 2. CALIFICAR (Si está cursando o está Reprobada y queremos corregir) */}
+          {/* USAMOS isFailed PARA PERMITIR CORRECCIÓN */}
           {(isEnrolled || isFailed) && (
             <section className="detail-section" style={{
                 marginTop: '30px', backgroundColor: '#fafafa', padding: '24px',
@@ -333,7 +335,6 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
             paddingTop: '16px', marginTop: '10px', borderTop: '1px solid #f0f0f0'
         }}>
           
-          {/* Botón Reiniciar solo aparece si ya se cursó */}
           {displayData.currentStatus !== 'Not Taken' && displayData.currentStatus !== 'Pending' ? (
              <button 
                onClick={handleReset} 
