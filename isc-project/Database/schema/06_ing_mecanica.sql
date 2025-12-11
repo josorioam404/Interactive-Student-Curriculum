@@ -1,3 +1,6 @@
+INSERT INTO Program (program_code_sia, name, snies_code, total_credits, faculty)
+VALUES ('2547', 'Ingeniería Mecánica', '28', 180, 'Ingeniería')
+ON CONFLICT (program_code_sia) DO NOTHING;
 INSERT INTO Subject (subject_code, name, credits) VALUES
 -- Fundamentación: Matemáticas, Probabilidad y Estadística
 ('1000004', 'Cálculo Diferencial', 4),

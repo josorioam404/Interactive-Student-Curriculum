@@ -88,7 +88,7 @@ INSERT INTO StudyPlan (program_code_sia, subject_code, suggested_semester, compo
 SELECT '2544', T1.subject_code, T1.suggested_semester, T1.component, T1.is_obligatory, gm.group_id, T1.prereq_rules
 FROM (
 VALUES
-('1000004', 1, 'Foundational', TRUE, 'Matemáticas, probabilidad y estadística', '[{"subject_name": "Matemáticas básicas", "type": "Prerrequisito"}]'::jsonb),
+('1000004', 1, 'Foundational', TRUE, 'Matemáticas, probabilidad y estadística', NULL),
 ('1000005', 2, 'Foundational', TRUE, 'Matemáticas, probabilidad y estadística', '[{"subject_code": "1000004", "type": "Prerrequisito"}]'::jsonb),
 ('1000003', 2, 'Foundational', TRUE, 'Matemáticas, probabilidad y estadística', '[{"subject_code": "1000004", "type": "Prerrequisito"}]'::jsonb),
 ('1000006', 3, 'Foundational', TRUE, 'Matemáticas, probabilidad y estadística', '[{"subject_code": "1000005", "type": "Prerrequisito"}, {"subject_code": "1000003", "type": "Prerrequisito"}]'::jsonb),

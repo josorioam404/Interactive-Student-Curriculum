@@ -1,15 +1,18 @@
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 
+
 class SubjectProgressResponse(BaseModel):
     status: str
     final_grade: Optional[float]
+
 
 class SubjectDetailResponse(BaseModel):
     name: str
     credits: int
     weekly_hours: Optional[int]
     description: Optional[str]
+
 
 class CurriculumItemResponse(BaseModel):
     id: int
@@ -21,11 +24,13 @@ class CurriculumItemResponse(BaseModel):
     subject: SubjectDetailResponse
     progress: SubjectProgressResponse
 
+
 class StudentCurriculumResponse(BaseModel):
     userId: int
     userName: str
     programCode: str
     curriculum: List[CurriculumItemResponse]
+
 
 class ProgressSummaryResponse(BaseModel):
     userId: int
@@ -35,15 +40,3 @@ class ProgressSummaryResponse(BaseModel):
     progressPercentage: float
     gpa: float
     papa: float
-
-class AvailableCourseResponse(BaseModel):
-    subject_code: str
-    name: str
-    credits: int
-    suggested_semester: int
-    status: str
-
-class AvailableCoursesResponse(BaseModel):
-    userId: int
-    availableCourses: List[AvailableCourseResponse]
-    count: int

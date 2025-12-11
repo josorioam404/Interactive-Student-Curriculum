@@ -107,7 +107,7 @@ INSERT INTO Subject (subject_code, name, credits) VALUES
 ('2016379', 'Inferencia Estadística', 4),
 ('2016360', 'Análisis de Regresión', 4),
 ('2015155', 'Introducción al Análisis Real', 4),
-('2016495', 'Electrónica Análoga I')
+('2016495', 'Electrónica Análoga I', 4)
 ON CONFLICT (subject_code) DO NOTHING;
 
 WITH InsertedGroups AS (

@@ -1,7 +1,7 @@
 INSERT INTO Program (program_code_sia, name, snies_code, total_credits, faculty)
 VALUES ('2546', 'Ingeniería Industrial', '16940', 168, 'Ingeniería')
 ON CONFLICT (program_code_sia) DO NOTHING;
-
+INSERT INTO Subject (subject_code, name, credits) VALUES 
 -- Fundamentación: Matemáticas (Optativas)
 ('1000004', 'Cálculo Diferencial', 4),
 ('2016377', 'Cálculo Diferencial en una Variable', 4),
@@ -63,7 +63,7 @@ ON CONFLICT (program_code_sia) DO NOTHING;
 ('2016605', 'Logística', 3), 
 ('2016589', 'Control y Gestión de Calidad', 3),  
 ('2016316', 'Control de Calidad y Sistemas de Gestión', 3),  
-('2016317', 'Control Estadístico de Calidad', 3),  
+('2016317', 'Control Estadístico de Calidad', 3),
 
 -- Disciplinar: Sociohumanística (Obligatorias)
 ('2015811', 'Sociología Especial: Industrial y del Trabajo', 3),  
@@ -72,7 +72,7 @@ ON CONFLICT (program_code_sia) DO NOTHING;
 
 -- Disciplinar: Sistemas de Información (Optativas)
 ('2025982', 'Sistemas de Información', 3),  
-('2016053', 'Sistemas de Información Gerencial', 4),  
+('2016053', 'Sistemas de Información Gerencial', 4),
 
 -- Disciplinar: Contexto Profesional y Proyectos de Ingeniería (Obligatorias)
 ('2026805', 'Introducción a la Ingeniería Industrial', 3),  
@@ -81,7 +81,7 @@ ON CONFLICT (program_code_sia) DO NOTHING;
 -- Disciplinar: Trabajo de Grado (Optativas - Se requieren 6 créditos)
 ('2025990', 'Trabajo de Grado- Modalidad Trabajos de Investigación', 6),  
 ('2025989', 'Trabajo de Grado- Modalidad Práctica de Extensión', 6),  
-('2015321', 'Trabajo de Grado – Asignaturas de Posgrado', 6),  
+('2015321', 'Trabajo de Grado – Asignaturas de Posgrado', 6),
 
 -- Libre Elección: Profundización (Optativas)
 ('2024045', 'Taller de Proyectos Interdisciplinarios', 3),  
@@ -104,7 +104,6 @@ ON CONFLICT (program_code_sia) DO NOTHING;
 ('2015270', 'Fundamentos de Economía', 3),  
 ('2016039', 'Fundamentos de Finanzas', 4)  
 ON CONFLICT (subject_code) DO NOTHING;
-
 WITH InsertedGroups AS (
     INSERT INTO CurriculumGroup (program_code_sia, component, group_name, required_credits_total, required_credits_obligatory) VALUES
     ('2546', 'Foundational', 'Matemáticas', 20, 0),
@@ -124,7 +123,6 @@ WITH InsertedGroups AS (
     RETURNING group_id, group_name, component
 )
 SELECT * FROM InsertedGroups;
-
 WITH GroupMap AS (
     SELECT group_id, group_name, component FROM CurriculumGroup WHERE program_code_sia = '2546'
 )
@@ -134,8 +132,8 @@ FROM (
     VALUES
         -- == FUNDAMENTACIÓN: MATEMÁTICAS (Alternativas A y B) ==
     -- Cálculo Diferencial (4 cr)
-    ('1000004', 1, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000001", "type": "Prerrequisito"}]'::jsonb),
-    ('2016377', 1, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000001", "type": "Prerrequisito"}]'::jsonb),
+    ('1000004', 1, 'Foundational', FALSE, 'Matemáticas', NULL),
+    ('2016377', 1, 'Foundational', FALSE, 'Matemáticas', NULL),
     
     -- Cálculo Integral (4 cr) - Requiere Diferencial (1000004 O 2016377)
     ('1000005', 2, 'Foundational', FALSE, 'Matemáticas', '[{"subject_code": "1000004", "type": "Prerrequisito"}, {"subject_code": "2016377", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
@@ -251,7 +249,7 @@ FROM (
     -- == TRABAJO DE GRADO ==
     ('2025990', 9, 'Disciplinary', TRUE, 'Trabajo de Grado', '[{"credit_rule": 70, "component": "Disciplinary"}]'::jsonb),
     ('2025989', 9, 'Disciplinary', TRUE, 'Trabajo de Grado', '[{"credit_rule": 70, "component": "Disciplinary"}]'::jsonb),
-    ('2015321', 9, 'Disciplinary', TRUE, 'Trabajo de Grado', '[{"credit_rule": 70, "component": "Disciplinary"}]'::jsonb)
+    ('2015321', 9, 'Disciplinary', TRUE, 'Trabajo de Grado', '[{"credit_rule": 70, "component": "Disciplinary"}]'::jsonb),
     -- Profundización (0 Créditos Obligatorios)
     ('2024045', 7, 'Free Elective', FALSE, 'Profundización', '{"credits": {"component": "Disciplinary", "type": "Approved", "min_credits": 40}, "subjects": [{"code": "2015702", "type": "Prerrequisito"}]}'::jsonb),
 

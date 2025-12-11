@@ -130,7 +130,14 @@ export const SubjectDetailModal: React.FC<SubjectDetailModalProps> = ({
         }
       );
 
-      if (!response.ok) throw new Error('Error al actualizar el progreso');
+      // Parse response body to get error details
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        // Extract the detailed error message from the backend
+        const errorMessage = responseData.detail || 'Error al actualizar el progreso';
+        throw new Error(errorMessage);
+      }
 
       if (newStatus === 'Completed') {
         showMessageFn('success', 'Calificación registrada: APROBADA');
