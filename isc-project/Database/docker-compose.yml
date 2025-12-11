@@ -1,19 +1,22 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  postgres:
-    image: postgres:latest
+  db:
+    image: postgres:15
     container_name: interactive_curriculum_db
-    environment:
-      POSTGRES_DB: interactive_curriculum
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+    env_file:
+      - ../env.dev/database.env
     ports:
       - "5432:5432"
     volumes:
-      - ./schema:/docker-entrypoint-initdb.d
-      - postgres_data:/var/lib/postgresql
-    
+      - ../Database/schema:/docker-entrypoint-initdb.d
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - isc-net
+
+networks:
+  isc-net:
+    driver: bridge
+
 volumes:
   postgres_data:
-  pgadmin_data:

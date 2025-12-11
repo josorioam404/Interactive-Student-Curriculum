@@ -1,54 +1,60 @@
-version: '3.9'
+version: "3.9"
+
 services:
   db:
-    image: postgres:latest
-    container_name: interactive_curriculum_db
-    environment:
-      POSTGRES_DB: interactive_curriculum
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin123
+    image: postgres:15
+    container_name: interactive_curriculum_db_dev
+    env_file:
+      - ./env.dev/database.env
     ports:
       - "5432:5432"
     volumes:
       - ./Database/schema:/docker-entrypoint-initdb.d
-      - postgres_data:/var/lib/postgresql
-  
+      - postgres_data_dev:/var/lib/postgresql/data
+    networks:
+      - isc-dev
+
   java-backend:
     build: ./Backend/java-backend/auth
+    container_name: isc_java_backend_dev
+    env_file:
+      - ./env.dev/java-backend.env
     ports:
       - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/interactive_curriculum
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin123
-      PYTHON_API_URL: http://python-backend:8000
-      FRONTEND_URL: http://localhost:5173
     depends_on:
       - db
-  
+    networks:
+      - isc-dev
+
   python-backend:
     build: ./Backend/python-backend
-    container_name: python_backend
+    container_name: isc_python_backend_dev
+    env_file:
+      - ./env.dev/python-backend.env
     ports:
       - "8000:8000"
-    environment:
-      DB_HOST: db
-      DB_NAME: interactive_curriculum
-      DB_USER: admin
-      DB_PASSWORD: admin123
-      FRONTEND_URL: http://localhost:5173
     depends_on:
       - db
-  
+    networks:
+      - isc-dev
+
   frontend:
     build:
       context: ./Frontend
       args:
         BUILD_MODE: development
+    container_name: isc_frontend_dev
     ports:
-      - "5173:80"
+      - "5173:80" # NGINX serves dev build AFTER npm build
     depends_on:
       - java-backend
+      - python-backend
+    networks:
+      - isc-dev
+
+networks:
+  isc-dev:
+    driver: bridge
 
 volumes:
-  postgres_data:
+  postgres_data_dev:

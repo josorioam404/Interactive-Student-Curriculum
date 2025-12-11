@@ -1,4 +1,6 @@
-/* Define el contenedor principal de la tarjeta de asignatura con efectos de elevación e interacción */
+/* =========================================================
+   BASE DE LA TARJETA
+   ========================================================= */
 .subject-card {
   display: flex;
   flex-direction: column;
@@ -21,7 +23,11 @@
   z-index: 10;
 }
 
-/* Estado: Aprobada (Verde brillante) */
+/* =========================================================
+   ESTADOS DE LA ASIGNATURA
+   ========================================================= */
+
+/* --- 1. APROBADA (Verde) --- */
 .subject-card.approved {
   background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
   border-color: #10b981;
@@ -38,16 +44,44 @@
   font-weight: 700;
 }
 
-.subject-card.approved .subject-code {
+.subject-card.approved .subject-code,
+.subject-card.approved .grade-display {
   color: #047857;
 }
 
 .subject-card.approved .credits-badge {
-  background-color: rgba(16, 185, 129, 0.15);
+  background-color: rgba(16, 185, 129, 0.2);
   color: #065f46;
 }
 
-/* Estado: Inscrita (Azul vibrante) */
+/* --- 2. REPROBADA (Rojo - Nuevo diseño simétrico) --- */
+.subject-card.failed {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-color: #ef4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.subject-card.failed:hover {
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+  border-color: #dc2626;
+}
+
+.subject-card.failed .subject-name {
+  color: #991b1b;
+  font-weight: 700;
+}
+
+.subject-card.failed .subject-code,
+.subject-card.failed .grade-display {
+  color: #b91c1c;
+}
+
+.subject-card.failed .credits-badge {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+}
+
+/* --- 3. INSCRITA (Azul Vibrante) --- */
 .subject-card.enrolled {
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
   border-color: #3b82f6;
@@ -73,7 +107,7 @@
   color: #1e40af;
 }
 
-/* Estado: Planeada (Azul claro) */
+/* --- 4. PLANEADA (Azul Claro) --- */
 .subject-card.planned {
   background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
   border-color: #0ea5e9;
@@ -99,33 +133,33 @@
   color: #0c4a6e;
 }
 
-/* Estado: Pendiente (Azul suave en lugar de gris) */
+/* --- 5. PENDIENTE (Gris/Neutro) --- */
 .subject-card.pending {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border-color: #93c5fd;
-  box-shadow: 0 2px 4px rgba(147, 197, 253, 0.1);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(148, 163, 184, 0.1);
 }
 
 .subject-card.pending:hover {
-  box-shadow: 0 6px 12px rgba(147, 197, 253, 0.2);
-  border-color: #60a5fa;
+  box-shadow: 0 6px 12px rgba(148, 163, 184, 0.2);
+  border-color: #94a3b8;
 }
 
 .subject-card.pending .subject-name {
-  color: #1e3a8a;
+  color: #334155;
   font-weight: 500;
 }
 
 .subject-card.pending .subject-code {
-  color: #3730a3;
+  color: #64748b;
 }
 
 .subject-card.pending .credits-badge {
-  background-color: rgba(96, 165, 250, 0.1);
-  color: #1e3a8a;
+  background-color: rgba(148, 163, 184, 0.15);
+  color: #475569;
 }
 
-/* Estado: Error/Alerta (Naranja/Amarillo) */
+/* --- 6. ERROR (Amarillo/Naranja) --- */
 .subject-card.error {
   background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
   border-color: #f59e0b;
@@ -140,7 +174,10 @@
   color: #92400e;
 }
 
-/* Estructura interna de la tarjeta */
+/* =========================================================
+   ESTRUCTURA INTERNA (Header, Body, Footer)
+   ========================================================= */
+
 .card-header-sc {
   display: flex;
   justify-content: space-between;
@@ -161,7 +198,6 @@
   align-items: flex-start;
 }
 
-/* Controla la tipografía del nombre y trunca el texto a 3 líneas */
 .subject-name {
   font-size: 0.85rem;
   font-weight: 600;
@@ -169,7 +205,7 @@
   margin: 0;
   transition: color 0.2s;
   
-  /* Truncar texto en múltiples líneas */
+  /* Truncado de texto a 3 líneas */
   display: -webkit-box;           
   -webkit-line-clamp: 3;          
   line-clamp: 3;
@@ -179,14 +215,24 @@
   word-break: break-word;         
 }
 
+/* --- FOOTER MODIFICADO PARA SEPARAR NOTA Y CRÉDITOS --- */
 .card-footer-sc {
   margin-top: 8px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between; /* Separa los elementos a los extremos */
   align-items: center;
+  width: 100%;
 }
 
-/* Estiliza el indicador de créditos */
+/* Nuevo: Estilo para la nota en la izquierda */
+.grade-display {
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.95;
+  /* El color se hereda del estado específico (verde o rojo) */
+}
+
+/* Estilo del badge de créditos en la derecha */
 .credits-badge {
   padding: 3px 8px;
   border-radius: 6px;
@@ -202,10 +248,45 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.6;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.subject-card.enrolled {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); /* Azul muy suave */
+  border-color: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+}
+
+.subject-card.enrolled:hover {
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+  border-color: #2563eb;
+}
+
+.subject-card.enrolled .subject-name {
+  color: #1e40af;
+  font-weight: 700;
+}
+
+.subject-card.enrolled .subject-code {
+  color: #1d4ed8;
+}
+
+.subject-card.enrolled .credits-badge {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+}
+
+/* --- BADGE "CURSANDO" --- */
+.cursando-badge {
+  background-color: #2563eb;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
 }

@@ -106,7 +106,8 @@ INSERT INTO Subject (subject_code, name, credits) VALUES
 ('2016366', 'Estadística Descriptiva y Exploratoria', 4),
 ('2016379', 'Inferencia Estadística', 4),
 ('2016360', 'Análisis de Regresión', 4),
-('2015155', 'Introducción al Análisis Real', 4)
+('2015155', 'Introducción al Análisis Real', 4),
+('2016495', 'Electrónica Análoga I', 4)
 ON CONFLICT (subject_code) DO NOTHING;
 
 WITH InsertedGroups AS (
@@ -183,14 +184,14 @@ VALUES
 ('2025967', 5, 'Disciplinary', TRUE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "1000017", "type": "Prerrequisito"}, {"subject_code": "2016699", "type": "Prerrequisito"}, {"subject_code": "2016697", "type": "Prerrequisito"}]'::jsonb),
 ('2016722', 6, 'Disciplinary', TRUE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016696", "type": "Prerrequisito"}]'::jsonb),
 ('2025983', 6, 'Disciplinary', TRUE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016702", "type": "Prerrequisito"}, {"subject_code": "2025982", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2016053", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
-('2016698', 3, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', NULL),
-('2016498', 3, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', NULL),
+('2016698', 3, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2025975", "type": "Prerrequisito"}]'::jsonb),
+('2016498', 3, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016495", "type": "Prerrequisito"}]'::jsonb),
 ('2016353', 4, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016375", "type": "Prerrequisito"}]'::jsonb),
 ('2027641', 4, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016375", "type": "Prerrequisito"}]'::jsonb),
 ('2025994', 6, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2025967", "type": "Prerrequisito"}, {"subject_code": "1000013", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027877", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015178", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 ('2016492', 7, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2025994", "type": "Prerrequisito"}]'::jsonb),
-('2025982', 5, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', NULL), 
-('2016053', 5, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', NULL), 
+('2025982', 5, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016703", "type": "Prerrequisito"}, {"subject_code": "2016353", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027641", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015702", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2016028", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb), 
+('2016053', 5, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016703", "type": "Prerrequisito"}, {"subject_code": "2016353", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027641", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015702", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2016028", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 ('2025972', 5, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016696", "type": "Prerrequisito"}]'::jsonb),
 ('2027311', 6, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016696", "type": "Prerrequisito"}]'::jsonb),
 ('2027313', 6, 'Disciplinary', FALSE, 'Infraestructura Computacional, de Comunicaciones y de Información', '[{"subject_code": "2016696", "type": "Prerrequisito"}]'::jsonb),
@@ -215,9 +216,9 @@ VALUES
 
 ('2016703', 4, 'Disciplinary', TRUE, 'Modelos, Sistemas, Optimización y Simulación', NULL),
 ('2025969', 5, 'Disciplinary', TRUE, 'Modelos, Sistemas, Optimización y Simulación', '[{"subject_code": "2025971", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015173", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
-('2025970', 4, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', NULL), 
-('2019082', 4, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', NULL), 
-('2017293', 4, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', NULL), 
+('2025970', 4, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', '[{"subject_code": "2016375", "type": "Prerrequisito"}, {"subject_code": "1000006", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015162", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2025964", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015181", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "1000013", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027877", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015178", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb), 
+('2019082', 4, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', '[{"subject_code": "2016375", "type": "Prerrequisito"}, {"subject_code": "1000006", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015162", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2025964", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015181", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "1000013", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027877", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015178", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb), 
+('2017293', 4, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', '[{"subject_code": "2016375", "type": "Prerrequisito"}, {"subject_code": "1000006", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015162", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2025964", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015181", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "1000013", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2027877", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2015178", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb), 
 ('2025971', 5, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', '[{"subject_code": "2025970", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2019082", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2017293", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 ('2015173', 5, 'Disciplinary', FALSE, 'Modelos, Sistemas, Optimización y Simulación', '[{"subject_code": "2025970", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2019082", "type": "Prerrequisito", "condition": "Alternativa"}, {"subject_code": "2017293", "type": "Prerrequisito", "condition": "Alternativa"}]'::jsonb),
 
