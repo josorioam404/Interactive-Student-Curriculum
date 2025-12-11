@@ -97,12 +97,24 @@ export const Dashboard: React.FC = () => {
     return viewMode === 'recommended' ? curriculum : [...curriculum, ...customSubjects];
   }, [viewMode, curriculum, customSubjects]);
 
+  // --- LÓGICA DE ESTADO MEJORADA (AQUÍ ESTÁ EL CAMBIO IMPORTANTE) ---
   const getSubjectStatus = (item: StudyPlanItem): string => {
     const status = item.progress?.status;
-    if (status === 'Completed') return 'approved';
+    const grade = item.progress?.final_grade;
+
+    // Si está Completada PERO la nota es < 3.0, es REPROBADA
+    if (status === 'Completed') {
+        if (grade !== undefined && grade !== null && grade < 3.0) {
+            return 'failed'; 
+        }
+        return 'approved';
+    }
+
+    // Casos estándar
     if (status === 'Enrolled') return 'enrolled';
     if (status === 'Planned') return 'planned';
-    if (status === 'Failed') return 'failed';
+    if (status === 'Approved') return 'approved';
+    
     return 'pending';
   };
 
@@ -128,7 +140,11 @@ export const Dashboard: React.FC = () => {
 
   // --- CÁLCULO DE MÉTRICAS ---
   const metrics = useMemo(() => {
-    const completed = itemsToDisplay.filter(i => i.progress?.status === 'Completed');
+    // Solo contamos las materias REALMENTE APROBADAS (nota >= 3.0)
+    const completed = itemsToDisplay.filter(i => {
+        const grade = i.progress?.final_grade;
+        return i.progress?.status === 'Completed' && (grade === undefined || grade === null || grade >= 3.0);
+    });
     
     const creditsCompleted = completed.reduce((sum, i) => sum + (i.subject?.credits || 0), 0);
     const totalCreditsProgram = 160; 
@@ -155,7 +171,6 @@ export const Dashboard: React.FC = () => {
     return { creditsCompleted, totalCreditsProgram, percentage, pa, papa };
   }, [itemsToDisplay]);
 
-  // Esta es la función que daba el aviso
   const handleProgressUpdate = async () => {
     await fetchCurriculum();
   };
@@ -275,6 +290,7 @@ export const Dashboard: React.FC = () => {
           <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="all">Estados</option>
             <option value="approved">Aprobada</option>
+            <option value="failed">Reprobada</option> {/* Agregamos opción de filtro */}
             <option value="enrolled">Inscrita</option>
             <option value="planned">Planeada</option>
             <option value="pending">Pendiente</option>
@@ -296,7 +312,7 @@ export const Dashboard: React.FC = () => {
         onClose={() => setSelectedSubject(null)} 
         data={selectedSubject}
         allSubjects={itemsToDisplay} 
-        onProgressUpdate={handleProgressUpdate} // ¡AQUÍ ESTÁ LA CORRECCIÓN!
+        onProgressUpdate={handleProgressUpdate} 
       />
 
       <AddSubjectModal 
