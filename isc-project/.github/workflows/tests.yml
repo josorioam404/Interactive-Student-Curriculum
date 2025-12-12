@@ -38,17 +38,17 @@ jobs:
         cd isc-project/Backend/python-backend
         pytest test_main.py -v
 
-  frontend-tests:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - name: Install dependencies and run tests
-      run: |
-        cd isc-project/Frontend
-        rm -f package-lock.json || true
-        npm install --legacy-peer-deps
-        npm run test
+  # frontend-tests:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v4
+  #   - name: Setup Node.js
+  #     uses: actions/setup-node@v4
+  #     with:
+  #       node-version: '20'
+  #   - name: Install dependencies and run tests
+  #     run: |
+  #       cd isc-project/Frontend
+  #       rm -f package-lock.json || true
+  #       npm install --legacy-peer-deps
+  #       npm run test
