@@ -1,0 +1,56 @@
+name: Automated Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  java-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    - name: Run Java Tests
+      run: |
+        cd isc-project/Backend/java-backend/auth
+        mvn test
+
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Install dependencies
+      run: |
+        cd isc-project/Backend/python-backend
+        pip install -r requirements.txt
+    - name: Run Python Tests
+      run: |
+        cd isc-project/Backend/python-backend
+        pytest test_main.py -v
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    - name: Install dependencies
+      run: |
+        cd isc-project/Frontend
+        npm install
+    - name: Run Frontend Tests
+      run: |
+        cd isc-project/Frontend
+        npm run test
