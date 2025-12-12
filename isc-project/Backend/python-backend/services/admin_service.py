@@ -1,100 +1,40 @@
-from typing import Optional, Dict, Any, List
 from fastapi import HTTPException
-from repositories.curriculum_repository import CurriculumRepository
-from repositories.subject_repository import SubjectRepository
-from repositories.studyplan_repository import StudyPlanRepository
+from typing import Any, Dict
+from repositories.admin_repository import AdminRepository
 
 
 class AdminService:
 
     def __init__(self):
-        self.subject_repo = SubjectRepository()
-        self.studyplan_repo = StudyPlanRepository()
-        self.curriculum_repo = CurriculumRepository()
+        self.repo = AdminRepository()
 
-    # -------------------------------------------
-    # SEARCH SUBJECTS
-    # -------------------------------------------
     def search_subjects(self, query: str):
-        results = self.subject_repo.search_subjects(query)
-        return {"results": results}
+        return self.repo.search_subjects(query)
 
-    # -------------------------------------------
-    # GET SUBJECT DETAIL
-    # -------------------------------------------
-    def get_subject(self, code: str):
-        subject = self.subject_repo.get_subject(code)
+    def get_subject(self, subject_code: str, program_code: str):
+        subject = self.repo.get_subject_details(subject_code, program_code)
+
         if not subject:
-            raise HTTPException(404, f"Subject {code} not found")
+            raise HTTPException(status_code=404, detail="Subject not found")
 
-        plan_rows = self.studyplan_repo.get_plans_for_subject(code)
+        return subject
 
-        return {
-            "subject": subject,
-            "studyPlans": plan_rows
-        }
+    def update_subject(self, program_code: str, subject_code: str, payload: Dict[str, Any]):
+        name = payload.get("name")
+        credits = payload.get("credits")
+        prereq_rules = payload.get("prereq_rules")
 
-    # -------------------------------------------
-    # UPDATE SUBJECT + STUDYPLAN
-    # -------------------------------------------
-    def update_subject(self, code: str, data: Dict[str, Any]):
+        if not name or not credits:
+            raise HTTPException(status_code=400, detail="Missing fields")
 
-        # -------- 1. Validar que exista --------
-        if not self.subject_repo.subject_exists(code):
-            raise HTTPException(404, f"Subject {code} not found")
+        # 1️ Update Subject table
+        self.repo.update_subject(subject_code, name, credits)
 
-        # -------- 2. Actualizar tabla Subject --------
-        self.subject_repo.update_subject(
-            subject_code=code,
-            name=data.get("name"),
-            credits=data.get("credits"),
-            weekly_hours=data.get("weekly_hours"),
-            description=data.get("description")
-        )
-
-        # -------- 3. Actualizar StudyPlan --------
-        if "program_code_sia" in data:
-            self.studyplan_repo.update_studyplan(
-                subject_code=code,
-                program=data["program_code_sia"],
-                semester=data.get("suggested_semester"),
-                component=data.get("component"),
-                is_obligatory=data.get("is_obligatory"),
-                prereq_rules=data.get("prereq_rules")
-            )
+        # 2️ Update prereqs only for THIS STUDY PLAN
+        self.repo.update_studyplan_prereqs(subject_code, program_code, prereq_rules)
 
         return {
             "success": True,
-            "message": f"Subject {code} updated successfully"
-        }
-
-    # -------------------------------------------
-    # PROCESS FILE UPLOAD (JSON or CSV)
-    # -------------------------------------------
-    def process_bulk_update(self, records: List[Dict[str, Any]]):
-        created = 0
-        updated = 0
-        failed = 0
-
-        for row in records:
-            try:
-                code = row["subject_code"]
-
-                if self.subject_repo.subject_exists(code):
-                    self.update_subject(code, row)
-                    updated += 1
-                else:
-                    self.subject_repo.create_subject(row)
-                    self.studyplan_repo.create_studyplan(row)
-                    created += 1
-
-            except Exception as e:
-                print("Failed record:", row, "Error:", str(e))
-                failed += 1
-
-        return {
-            "processed": len(records),
-            "created": created,
-            "updated": updated,
-            "failed": failed
+            "message": f"Subject {subject_code} updated in program {program_code}",
+            "subject_code": subject_code
         }
