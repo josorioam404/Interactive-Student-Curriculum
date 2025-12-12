@@ -1,38 +1,29 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException
+from services.admin_service import AdminService
+from utils.jwt_utils import decode_jwt
 
-router = APIRouter()
+router = APIRouter(prefix="/admin", tags=["Admin"])
+admin_service = AdminService()
+
+
+def require_admin(token: str):
+    data = decode_jwt(token)
+    if data["role"].lower() != "admin":
+        raise HTTPException(403, "Only admins can perform this action")
+    return data
+
 
 @router.get("/subjects/search")
-def search_subjects(query: str):
-    """Search subjects by code or name."""
-    return {
-        "results": [
-            {
-                "code": "FISG1001",
-                "name": "Fundamentos de Física I",
-                "credits": 4,
-                "prerequisites": []
-            }
-        ]
-    }
+def search_subjects(query: str, auth=Depends(require_admin)):
+    return admin_service.search_subjects(query)
+
 
 @router.get("/subjects/{code}")
-def get_subject(code: str):
-    """Get detailed information about a specific subject."""
-    return {
-        "code": code,
-        "name": "Fundamentos de Física I",
-        "credits": 4,
-        "type": "Required",
-        "semester": 1,
-        "prerequisites": []
-    }
+def get_subject(code: str, auth=Depends(require_admin)):
+    return admin_service.get_subject(code)
+
 
 @router.put("/subjects/{code}")
-def update_subject(code: str, subject: dict):
-    """Update subject information."""
-    return {
-        "success": True,
-        "message": f"Subject {code} updated successfully",
-        "subject": subject
-    }
+def update_subject(code: str, data: dict, auth=Depends(require_admin)):
+    return admin_service.update_subject(code, data)
+
