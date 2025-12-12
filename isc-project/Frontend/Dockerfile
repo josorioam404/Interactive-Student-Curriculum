@@ -7,16 +7,16 @@ ARG BUILD_MODE=production
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci  
+RUN npm install --legacy-peer-deps  
 
-# Copy all frontend files and build
+# Copy all frontend files (excluding test files via .dockerignore)
 COPY . .
 
 RUN if [ "$BUILD_MODE" = "development" ]; then \
       cp .env.development .env.production; \
     fi
 
-RUN npm run build
+RUN npx vite build --config vite.config.prod.ts
 
 # Stage 2: Serve with Nginx
 FROM nginx:alpine
