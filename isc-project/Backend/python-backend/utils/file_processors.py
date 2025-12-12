@@ -6,6 +6,7 @@ from typing import Dict
 
 async def process_curriculum_file(file: UploadFile) -> Dict:
     """Process uploaded curriculum file (CSV or JSON)."""
+    import json
     try:
         content = await file.read()
         filename = file.filename or "unknown"
@@ -67,7 +68,7 @@ def process_csv_curriculum(content: bytes, filename: str) -> Dict:
                 program_code = row.get("program_code")
                 prereq_text = row.get("prereq_rules", "").strip()
 
-                # 1️⃣ parse JSON safely
+                # 1️ parse JSON safely
                 try:
                     prereq_rules = json.loads(prereq_text) if prereq_text else None
                 except json.JSONDecodeError:
@@ -75,23 +76,30 @@ def process_csv_curriculum(content: bytes, filename: str) -> Dict:
                     failed += 1
                     continue
 
-                # 2️⃣ update Subject table
-                if name or credits:
-                    repo.update_subject(
-                        subject_code,
-                        name if name else repo.get_subject_details(subject_code, program_code)["name"],
-                        int(credits) if credits else repo.get_subject_details(subject_code, program_code)["credits"]
-                    )
+                # 2️verificar si ya existe en ese programa
+                existing = repo.get_subject_details(subject_code, program_code)
 
-                # 3️⃣ update StudyPlan prereqs
-                if prereq_rules is not None:
-                    repo.update_studyplan_prereqs(
-                        subject_code,
-                        program_code,
-                        prereq_rules
-                    )
+                if existing:
+                    print(f"Subject {subject_code} already exists in program {program_code}")
+                    failed += 1
+                    continue
 
-                updated += 1
+                # 3️crear Subject
+                repo.create_subject({
+                    "subject_code": subject_code,
+                    "name": name,
+                    "credits": int(credits)
+                })
+
+                # 4️crear StudyPlan SOLO para ese programa
+                repo.create_studyplan_entry(
+                    subject_code=subject_code,
+                    program_code=program_code,
+                    prereq_rules=prereq_rules
+                )
+
+                created += 1
+
 
             except Exception as e:
                 print(f"Error processing row {row}: {str(e)}")

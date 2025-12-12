@@ -1,5 +1,7 @@
 from typing import Optional, List, Dict, Any
+import json
 from database.db import get_connection
+
 
 
 class AdminRepository:
@@ -70,18 +72,15 @@ class AdminRepository:
         conn.commit()
         cur.close()
         conn.close()
+    def update_studyplan_prereqs(self, subject_code: str, program_code: str, prereq_rules):
+        """Update prereq_rules (JSONB) for a specific subject in a specific program."""
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    UPDATE StudyPlan
+                    SET prereq_rules = %s
+                    WHERE subject_code = %s
+                    AND program_code_sia = %s
+                """, (json.dumps(prereq_rules), subject_code, program_code))
 
-    def update_studyplan_prereqs(self, subject_code: str, program_code: str, prereq_rules: Any):
-        """Update only THIS program's prereq rules."""
-        conn = get_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            UPDATE StudyPlan
-            SET prereq_rules = %s
-            WHERE subject_code = %s AND program_code_sia = %s
-        """, (prereq_rules, subject_code, program_code))
-
-        conn.commit()
-        cur.close()
-        conn.close()
+            conn.commit()
